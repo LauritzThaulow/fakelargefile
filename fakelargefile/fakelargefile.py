@@ -5,11 +5,17 @@ Created on Oct 25, 2014
 '''
 
 
+from __future__ import absolute_import, division
+
+from fakelargefile.errors import NotFoundError
+import pkg_resources
+
+
 SI_PREFIX_DICT = {
     "k": 1024,
-    "M": 1024**2,
-    "G": 1024**3,
-    "T": 1024**4}
+    "M": 1024 ** 2,
+    "G": 1024 ** 3,
+    "T": 1024 ** 4}
 
 
 class FakeLargeFile(object):
@@ -19,39 +25,39 @@ class FakeLargeFile(object):
             self.size = int(SI_PREFIX_DICT[si_prefix] * value)
         else:
             self.size = size
-        
+        if background is None:
+            background = pkg_resources.resource_stream(
+                "fakelargefile", "GPLv3.txt").read()
         self.background = background
         self.pos = 0
-        self.changes = []
 
-    def insert(self, pos, text):
-        self.changes.append(("I", pos, text))
+    def next_occurence(self, string, start=0, stop=None, after=False):
+        if stop is None:
+            stop = self.size
+        wrap = len(self.background)
+        if stop - start > wrap:
+            stop = start + wrap
+        wrapped_start = start % wrap
+        wrapped_stop = wrapped_start + (stop - start)
+        bg = self.background * 3
+        try:
+            endpos = bg.index(string, wrapped_start, wrapped_stop)
+        except ValueError:
+            raise NotFoundError()
+        unwrapped_endpos = (start // wrap) * wrap + endpos
+        if after:
+            return unwrapped_endpos + 1
+        else:
+            return unwrapped_endpos
 
-    def delete(self, pos, byte_count):
-        self.changes.append(("D", pos, byte_count))
-
-    def change(self, pos, text):
-        self.changes.append(("C", pos, text))
-
-    def curr_pos(self, pos, change_index=0):
-        for change_type, cpos, data in self.changes[change_index]:
-            if cpos > pos:
-                continue
-            if change_type == "I":
-                pos += len(data)
-            elif change_type == "D":
-                pos -= data
-        return pos
-
-    def reverse_pos_range(self, start, stop):
-        old_intervals = [(start, stop)]
-        for change_type, cpos, data in reversed(self.changes):
-            cpos_stop = cpos + len(data)
-            new_intervals = []
-            for start, stop in old_intervals:
-                if cpos > stop:
-                    new_intervals.append((start, stop))
-                    continue
-
-    def read(self, byte_count):
-        start = self.pos % len(self.background)
+    def readline(self, size=None):
+        if size is None:
+            try:
+                endpos = self.background.index("\n", self.pos)
+            except IndexError:
+                endpos = self.size
+        else:
+            endpos = self.background.index("\n", self.pos, self.pos + size)
+        ret = self.background[self.pos:endpos]
+        self.pos = endpos
+        return ret
