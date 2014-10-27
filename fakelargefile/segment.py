@@ -203,3 +203,28 @@ asdlk vonenasdin go oxzihvejnvoai shf vnje naon vjln aadve
     def slice_to_stop_from(self, start):
         return type(self)(start, self.text[start - self.start:])
 
+
+@register_segment
+class HomogenousSegment(AbstractSegment):
+    def __init__(self, start, size, char):
+        super(HomogenousSegment, self).__init__(start, size)
+        self.char = char
+
+    def __str__(self):
+        return self.char * self.size
+
+    @classmethod
+    def example(cls, start, size):
+        return cls(start=start, size=size, char="\x00")
+
+    def copy(self, start=None):
+        if start is None:
+            start = self.start
+        return type(self)(start, self.size, self.char)
+
+    def slice_from_start_to(self, stop):
+        return type(self)(self.start, stop - self.start, self.char)
+
+    def slice_to_stop_from(self, start):
+        return type(self)(start, self.stop - start, self.char)
+

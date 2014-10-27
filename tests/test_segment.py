@@ -5,10 +5,15 @@ Tests for the fakelargefile.segment module
 
 import logging
 from mock import Mock
-from fakelargefile.segment import segment_types, LiteralSegment
+from fakelargefile.segment import (
+    segment_types, LiteralSegment, HomogenousSegment)
 
 
 log = logging.getLogger(__name__)
+
+
+def test_segment_types():
+    assert set(segment_types) == set([LiteralSegment, HomogenousSegment])
 
 
 def test_common_segment_functionality():
@@ -136,3 +141,11 @@ def test_LiteralSegment():
     assert ls.start == 17
     assert ls.text == str(ls) == text
     assert ls.size == 10
+
+
+def test_HomogenousSegment():
+    hs = HomogenousSegment(start=3, size=8, char="\x00")
+    assert hs.start == 3
+    assert hs.stop == 11
+    assert hs.size == 8
+    assert str(hs) == "\x00" * 8
