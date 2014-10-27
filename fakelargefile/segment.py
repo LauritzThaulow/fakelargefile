@@ -146,9 +146,9 @@ class AbstractSegment(object):
 
 
 @register_segment
-class StaticSegment(AbstractSegment):
+class LiteralSegment(AbstractSegment):
     def __init__(self, start, text):
-        super(StaticSegment, self).__init__(start, len(text))
+        super(LiteralSegment, self).__init__(start, len(text))
         self.text = text
 
     def __str__(self):

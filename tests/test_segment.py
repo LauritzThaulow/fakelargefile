@@ -5,7 +5,7 @@ Tests for the fakelargefile.segment module
 
 import logging
 from mock import Mock
-from fakelargefile.segment import segment_types
+from fakelargefile.segment import segment_types, LiteralSegment
 
 
 log = logging.getLogger(__name__)
@@ -128,3 +128,11 @@ def test_common_segment_cut_in_half():
         assert len(last) == len(str(last)) == 29
         assert last.start == 11
         assert last.stop == 40
+
+
+def test_LiteralSegment():
+    text = "abcdefghij"
+    ls = LiteralSegment(start=17, text=text)
+    assert ls.start == 17
+    assert ls.text == str(ls) == text
+    assert ls.size == 10
