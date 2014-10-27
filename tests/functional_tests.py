@@ -5,7 +5,7 @@ Created on Oct 25, 2014
 '''
 
 
-from fakelargefile import FakeLargeFile
+from fakelargefile import FakeLargeFile, RepeatingSegment
 
 BG = """\
                     GNU GENERAL PUBLIC LICENSE
@@ -31,12 +31,13 @@ your programs, too.
 
 """
 
+
 def test_usage():
-    flf = FakeLargeFile("10G", background=BG)
+    flf = FakeLargeFile(RepeatingSegment.example(start=0, size="10G"))
     assert flf.readline().strip() == "GNU GENERAL PUBLIC LICENSE"
     deleted = flf.deleteline(count=2)
     assert flf.read(10).strip() == "Copyright"
-    assert flf.readaline() == (
+    assert flf.readline() == (
         " (C) 2007 Free Software Foundation, Inc. <http://fsf.org/>")
     flf.insert(deleted)
     flf.seek(len(BG) * 10)
