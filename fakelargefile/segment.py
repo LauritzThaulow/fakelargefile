@@ -31,37 +31,49 @@ class AbstractSegment(object):
         self.start = start
         self.size = size
 
-    def __add__(self, other):
-        if self.stop < other.start:
-            return [self.copy()]
-        elif other.start < self.start:
-            return [self.copy(start=self.start + len(other))]
-        elif self.start <= other.start <= self.stop:
-            ret = []
-            if self.start < other.start:
-                ret.append(self[:other.start])
-            ret.append(other.copy())
-            if other.start < self.stop:
-                last = self[other.start:]
-                last.start += len(other)
-                ret.append(last)
-            return ret
+    def intersects(self, start, stop):
+        """
+        Return True if some part of other is inside self.
 
-    def __sub__(self, other):
-        if self.stop < other.start:
-            return [self.copy()]
-        elif other.stop < self.start:
-            return [self.copy(start=self.start - len(other))]
-        elif other.start < self.start < self.stop < other.stop:
-            return []
-        elif other.start < self.start < other.stop < self.stop:
-            segment = self[other.stop:]
-            segment.start = other.start
-            return [segment]
-        elif self.start < other.start < self.stop < other.stop:
-            return [self[:other.start]]
-        elif self.start < other.start < other.stop < self.stop:
-            return [self[:other.start], self[other.stop:]]
+        Returns True even if other is of length 0, if it is *inside* self.
+
+        Returns False if other is merely adjacent.
+        """
+        if self.start < stop < self.stop:
+            return True
+        elif self.start < start < self.stop:
+            return True
+        return False
+
+    def intersects_segment(self, other):
+        """
+        Convenience method for self.intersects(other.start, other.stop)
+        """
+        return self.intersects(other.start, other.stop)
+
+    def cut(self, start, stop):
+        """
+        Parts left after removing part between start and stop.
+
+        Cuts from and including start to and not including stop.
+
+        The start to stop interval has to intersect self, or a ValueError is
+        raised.
+        """
+        if not self.intersects(start, stop):
+            raise ValueError(
+                "Cant cut from {} to {} on segment from {} to {}".format(
+                    start, stop, self.start, self.stop))
+        if start <= self.start < stop < self.stop:
+            return [self[stop:]]
+        elif self.start < start < self.stop <= stop:
+            return [self[:start]]
+        elif self.start < start <= stop < self.stop:
+            return [self[:start], self[stop:]]
+        else:
+            raise ValueError(
+                "Unforseen case: does {}->{} intersect {}->{}".format(
+                    start, stop, self.start, self.stop))
 
     def __len__(self):
         """

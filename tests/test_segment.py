@@ -3,7 +3,12 @@ Tests for the fakelargefile.segment module
 '''
 
 
+import logging
+from mock import Mock
 from fakelargefile.segment import segment_types
+
+
+log = logging.getLogger(__name__)
 
 
 def test_common_segment_functionality():
@@ -18,33 +23,53 @@ def test_common_segment_functionality():
         assert segment.stop == 3 + 42
 
 
+def test_common_segment_intersects():
+    for segment_type in segment_types:
+        log.debug(segment_type)
+        segment = segment_type.example(start=3, size=10)
+        assert segment.intersects(0, 1) == False
+        assert segment.intersects(1, 3) == False
+        assert segment.intersects(2, 4) == True
+        assert segment.intersects(3, 4) == True
+        assert segment.intersects(4, 6) == True
+        assert segment.intersects(6, 6) == True
+        assert segment.intersects(12, 13) == True
+        assert segment.intersects(12, 14) == True
+        assert segment.intersects(13, 14) == False
+        assert segment.intersects(15, 17) == False
+
+
+def test_common_segment_intersects_segment():
+    for segment_type in segment_types:
+        segment = segment_type.example(start=3, size=10)
+        segment.intersects = Mock()
+        other = Mock()
+        other.start = 8
+        other.stop = 13
+        segment.intersects_segment(other)
+        assert segment.intersects.called_once_with(start=8, stop=13)
+
+
 def test_common_segment_subtract_from_start():
     for segment_type in segment_types:
         segment = segment_type.example(start=3, size=42)
         content = str(segment)
-        segment = (segment - segment_type.example(start=1, size=7))[0]
-        assert content[5:] == str(segment)
-        assert len(segment) == len(str(segment)) == 37
-        assert segment.start == 1
-        assert segment.stop == 1 + 37
-
-
-def test_common_segment_add_before_start():
-    for segment_type in segment_types:
-        segment = segment_type.example(start=1, size=37)
-        content = str(segment)
-        segment = (segment_type.example(start=0, size=7) + segment)[1]
-        assert content == str(segment)
-        assert len(segment) == len(str(segment)) == 37
-        assert segment.start == 8
-        assert segment.stop == 8 + 37
+        result = segment.cut(start=1, stop=8)
+        assert len(result) == 1
+        result = result[0]
+        assert content[5:] == str(result)
+        assert len(result) == len(str(result)) == 37
+        assert result.start == 8
+        assert result.stop == 8 + 37
 
 
 def test_common_segment_subtract_from_end():
     for segment_type in segment_types:
         segment = segment_type.example(start=8, size=37)
         content = str(segment)
-        segment = (segment - segment_type.example(start=40, size=1000000))[0]
+        result = segment.cut(start=40, stop=1000000)
+        assert len(result) == 1
+        segment = result[0]
         assert content[:-5] == str(segment)
         assert len(segment) == len(str(segment)) == 32
         assert segment.start == 8
@@ -55,51 +80,45 @@ def test_common_segment_subtract_from_middle():
     for segment_type in segment_types:
         segment = segment_type.example(start=8, size=32)
         content = str(segment)
-        segments = segment - segment_type.example(start=18, size=8)
-        assert len(segments) == 2
-        first, last = segments
+        result = segment.cut(start=18, stop=26)
+        assert len(result) == 2
+        first, last = result
         assert content[:10] == str(first)
         assert content[18:] == str(last)
         assert len(first) == len(str(first)) == 10
         assert len(last) == len(str(last)) == 14
         assert first.start == 8
         assert first.stop == 18
-        assert last.start == 18
-        assert last.stop == 32
+        assert last.start == 26
+        assert last.stop == 40
 
 
-def test_common_segment_add_in_middle():
+def test_common_segment_subtract_disjunct():
+    for segment_type in segment_types:
+        segment = segment_type.example(start=8, size=32)
+        for start, stop in ((1, 7), (1, 8), (40, 100), (41, 293)):
+            log.debug("Trying to intersect {}->{} with {}->{}".format(
+                start, stop, 8, 40))
+            try:
+                segment.cut(start=start, stop=stop)
+            except ValueError:
+                assert True
+            else:
+                assert False
+
+
+def test_common_segment_cut_in_half():
     for segment_type in segment_types:
         segment = segment_type.example(start=8, size=32)
         content = str(segment)
-        to_insert = segment_type.example(start=16, size=8)
-        segments = segment + to_insert
-        assert len(segments) == 3
-        first, middle, last = segments
-        assert content[:8] == str(first)
-        assert str(to_insert) == str(middle)
-        assert content[8:32] == str(last)
-        assert len(first) == len(str(first)) == 8
-        assert len(middle) == len(str(middle)) == 8
-        assert len(last) == len(str(last)) == 24
+        result = segment.cut(start=11, stop=11)
+        assert len(result) == 2
+        first, last = result
+        assert str(first) == content[:3]
+        assert len(first) == len(str(first)) == 3
         assert first.start == 8
-        assert first.stop == 16
-        assert middle.start == 16
-        assert middle.stop == 24
-        assert last.start == 24
-        assert last.stop == 48
-
-
-def test_common_segment_operations_after():
-    for segment_type in segment_types:
-        segment = segment_type.example(start=8, size=32)
-        unchanged = (segment + segment_type.example(start=32, size=3))[0]
-        assert segment.start == unchanged.start
-        assert segment.stop == unchanged.stop
-        assert len(segment) == len(unchanged)
-        assert str(segment) == str(unchanged)
-        unchanged = (segment - segment_type.example(start=32, size=3))[0]
-        assert segment.start == unchanged.start
-        assert segment.stop == unchanged.stop
-        assert len(segment) == len(unchanged)
-        assert str(segment) == str(unchanged)
+        assert first.stop == 11
+        assert str(last) == content[3:]
+        assert len(last) == len(str(last)) == 29
+        assert last.start == 11
+        assert last.stop == 40
