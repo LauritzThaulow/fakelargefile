@@ -115,22 +115,44 @@ class AbstractSegment(object):
         """
         pass
 
-    @abstractmethod
     def __getitem__(self, slice_):
         """
-        Slicing implementation for each segment subclass.
+        Generic slicing implementation.
 
-        Only these cases need to be implemented:
+        Implements these cases:
 
         - slice from start to some point in the middle
         - slice from some point in the middle to the end
 
-        For the last case, the start point of the returned segment should be
-        such that ``segment[x:].start == segment.start + x``.
-
-        Any unsupported case should raise an IndexError.
+        Any unsupported case will raise an IndexError.
         """
-        pass
+        if slice_.start is None and self.start < slice_.stop <= self.stop:
+            return self.slice_from_start_to(slice_.stop)
+        elif self.start <= slice_.start < self.stop and slice_.stop is None:
+            return self.slice_to_stop_from(slice_.start)
+        else:
+            raise IndexError((
+                "Unsupported slice operation. "
+                "Start: {}, stop: {}, slice: {!r}").format(
+                    self.start, self.stop, slice_))
+
+    @abstractmethod
+    def slice_from_start_to(self, stop):
+        """
+        Return the slice from the start of this segment to stop.
+        """
+        return type(self)(self.start, self.text[:stop - self.start])
+
+    @abstractmethod
+    def slice_to_stop_from(self, start):
+        """
+        Return the slice from start to the end of this segment.
+
+        The start point of the returned segment should be such that::
+
+            segment.slice_to_stop_from(x).start == segment.start + x
+        """
+        return type(self)(start, self.text[start - self.start:])
 
     @abstractmethod
     def copy(self, start=None):
@@ -175,15 +197,9 @@ asdlk vonenasdin go oxzihvejnvoai shf vnje naon vjln aadve
             start = self.start
         return type(self)(start, self.text)
 
-    def __getitem__(self, slice_):
-        if slice_.start is None and self.start < slice_.stop <= self.stop:
-            return type(self)(
-                self.start, self.text[:slice_.stop - self.start])
-        elif self.start <= slice_.start < self.stop and slice_.stop is None:
-            return type(self)(
-                slice_.start, self.text[slice_.start - self. start:])
-        else:
-            raise IndexError((
-                "Unsupported slice operation. "
-                "Start: {}, stop: {}, slice: {!r}").format(
-                    self.start, self.stop, slice_))
+    def slice_from_start_to(self, stop):
+        return type(self)(self.start, self.text[:stop - self.start])
+
+    def slice_to_stop_from(self, start):
+        return type(self)(start, self.text[start - self.start:])
+
