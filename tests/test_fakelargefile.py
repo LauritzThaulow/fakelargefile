@@ -13,17 +13,6 @@ DEFAULT_BG = pkg_resources.resource_stream(
     "fakelargefile", "GPLv3.txt").read()
 
 
-def test_init():
-    flf = FakeLargeFile("1k")
-    assert flf.size == 1024
-    flf = FakeLargeFile("3.31254M", background="abcd")
-    assert flf.size == int(1024 * 1024 * 3.31254)
-    assert flf.background == "abcd"
-    flf = FakeLargeFile("13G")
-    assert flf.size == 13 * 1024 * 1024 * 1024
-    assert flf.background == DEFAULT_BG
-
-
 def test_next_occurence():
     flf = FakeLargeFile(27, "abcd\nefgh\n")
     assert flf.next_occurence("\n") == 4

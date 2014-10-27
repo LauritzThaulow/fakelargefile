@@ -11,20 +11,9 @@ from fakelargefile.errors import NotFoundError
 import pkg_resources
 
 
-SI_PREFIX_DICT = {
-    "k": 1024,
-    "M": 1024 ** 2,
-    "G": 1024 ** 3,
-    "T": 1024 ** 4}
-
-
 class FakeLargeFile(object):
     def __init__(self, size, background=None):
-        if isinstance(size, basestring):
-            value, si_prefix = float(size[:-1]), size[-1:]
-            self.size = int(SI_PREFIX_DICT[si_prefix] * value)
-        else:
-            self.size = size
+
         if background is None:
             background = pkg_resources.resource_stream(
                 "fakelargefile", "GPLv3.txt").read()

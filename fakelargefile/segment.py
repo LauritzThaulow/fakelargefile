@@ -3,27 +3,16 @@ These classes represent segments of the large file
 '''
 
 
-from __future__ import division
+from __future__ import division, absolute_import
 
 import pkg_resources
 from abc import ABCMeta, abstractmethod
 
-
-class abstractclassmethod(classmethod):
-
-    __isabstractmethod__ = True
-
-    def __init__(self, callable_):
-        callable_.__isabstractmethod__ = True
-        super(abstractclassmethod, self).__init__(callable_)
+from fakelargefile.tools import (
+    abstractclassmethod, register_machinery, parse_size)
 
 
-segment_types = []
-
-
-def register_segment(cls):
-    segment_types.append(cls)
-    return cls
+register_segment, segment_types = register_machinery()
 
 
 class AbstractSegment(object):
@@ -32,7 +21,7 @@ class AbstractSegment(object):
 
     def __init__(self, start, size):
         self._start = start
-        self._size = size
+        self._size = parse_size(size)
 
     @property
     def start(self):
@@ -192,6 +181,7 @@ asld flkasjdfl kaslk flkasj dflkajsflaksdjf
 asdfl kjasl kveln alvaielnalkasfnals lfnvin neniviennievnievninievsa,sdn las
 asdlk vonenasdin go oxzihvejnvoai shf vnje naon vjln aadve
         """
+        size = parse_size(size)
         basis = basis * (size // len(basis) + 1)
         return cls(start, basis[:size])
 

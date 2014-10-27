@@ -35,6 +35,16 @@ def test_common_segment_functionality():
         assert segment.stop == 3 + 42
 
 
+def test_common_segment_str_size():
+    for segment_type in segment_types:
+        segment = segment_type.example(start=7, size="1k")
+        assert segment.size == 1024
+        segment = segment_type.example(start=3, size="0.31254M")
+        assert segment.size == int(1024 * 1024 * 0.31254)
+        segment = segment_type.example(start=0, size="0.003G")
+        assert segment.size == int(0.003 * 1024 * 1024 * 1024)
+
+
 def test_common_segment_intersects():
     for segment_type in segment_types:
         log.debug(segment_type)
