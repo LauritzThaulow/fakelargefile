@@ -28,8 +28,23 @@ class AbstractSegment(object):
     __metaclass__ = ABCMeta
 
     def __init__(self, start, size):
-        self.start = start
-        self.size = size
+        self._start = start
+        self._size = size
+
+    @property
+    def start(self):
+        return self._start
+
+    @property
+    def size(self):
+        return self._size
+
+    @property
+    def stop(self):
+        """
+        Return the positon of the byte after the last byte of this segment.
+        """
+        return self.start + self.size
 
     def intersects(self, start, stop):
         """
@@ -80,13 +95,6 @@ class AbstractSegment(object):
         The lenght of the segment in bytes.
         """
         return self.size
-
-    @property
-    def stop(self):
-        """
-        Return the positon of the byte after the last byte of this segment.
-        """
-        return self.start + self.size
 
     @abstractmethod
     def __str__(self):

@@ -18,7 +18,13 @@ def test_common_segment_functionality():
         assert len(segment) == len(content) == 42
         assert segment.start == 7
         assert segment.stop == 7 + 42
-        segment.start = 3
+        try:
+            segment.start = 3
+        except AttributeError:
+            assert True
+        else:
+            assert False
+        segment = segment.copy(start=3)
         assert segment.start == 3
         assert segment.stop == 3 + 42
 
