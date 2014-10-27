@@ -6,14 +6,15 @@ Tests for the fakelargefile.segment module
 import logging
 from mock import Mock
 from fakelargefile.segment import (
-    segment_types, LiteralSegment, HomogenousSegment)
+    segment_types, LiteralSegment, HomogenousSegment, RepeatingSegment)
 
 
 log = logging.getLogger(__name__)
 
 
 def test_segment_types():
-    assert set(segment_types) == set([LiteralSegment, HomogenousSegment])
+    assert set(segment_types) == set([
+        LiteralSegment, HomogenousSegment, RepeatingSegment])
 
 
 def test_common_segment_functionality():
@@ -149,3 +150,8 @@ def test_HomogenousSegment():
     assert hs.stop == 11
     assert hs.size == 8
     assert str(hs) == "\x00" * 8
+
+
+def test_RepeatingSegment():
+    rs = RepeatingSegment(start=3, size=13, text="abcd")
+    assert str(rs) == "abcdabcdabcda"

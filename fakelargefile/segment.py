@@ -3,6 +3,9 @@ These classes represent segments of the large file
 '''
 
 
+from __future__ import division
+
+import pkg_resources
 from abc import ABCMeta, abstractmethod
 
 
@@ -228,3 +231,31 @@ class HomogenousSegment(AbstractSegment):
     def slice_to_stop_from(self, start):
         return type(self)(start, self.stop - start, self.char)
 
+
+@register_segment
+class RepeatingSegment(AbstractSegment):
+    def __init__(self, start, size, text):
+        super(RepeatingSegment, self).__init__(start, size)
+        self.text = text
+
+    def __str__(self):
+        return (self.text * (self.size // len(self.text) + 1))[:self.size]
+
+    @classmethod
+    def example(cls, start, size):
+        text = pkg_resources.resource_stream(
+            "fakelargefile", "GPLv3.txt").read()
+        return cls(start=start, size=size, text=text)
+
+    def copy(self, start=None):
+        if start is None:
+            start = self.start
+        return type(self)(start, self.size, self.text)
+
+    def slice_from_start_to(self, stop):
+        return type(self)(self.start, stop - self.start, self.text)
+
+    def slice_to_stop_from(self, start):
+        split_at = start - self.start
+        text = self.text[split_at:] + self.text[:split_at]
+        return type(self)(start, self.stop - start, text)
