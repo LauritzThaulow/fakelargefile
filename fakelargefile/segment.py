@@ -85,6 +85,27 @@ class AbstractSegment(object):
         """
         return self.intersects(other.start, other.stop)
 
+    def affected_by(self, index):
+        """
+        Will insertion or deletion at index affect this segment?
+
+        It is assumed that it's not a zero-length deletion we're talking
+        about.
+
+        Being affected by means that this segment will be split, sliced
+        and/or moved.
+        """
+        return index < self.stop
+
+    def affected_by_segment(self, segment):
+        """
+        Will inserting or deleting the given segment affect this segment?
+
+        Being affected by means that this segment will be split, sliced
+        and/or moved.
+        """
+        return self.affected_by(segment.start)
+
     def cut(self, start, stop):
         """
         Parts left after removing part between start and stop.

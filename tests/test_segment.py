@@ -95,6 +95,30 @@ def test_common_segment_intersects_segment():
         assert segment.intersects.called_once_with(start=8, stop=13)
 
 
+def test_common_segment_affected_by():
+    for segment_type in segment_types:
+        log.debug(segment_type)
+        segment = segment_type.example(start=3, size=10)
+        assert segment.affected_by(14) == False
+        assert segment.affected_by(13) == False
+        assert segment.affected_by(12) == True
+        assert segment.affected_by(4) == True
+        assert segment.affected_by(3) == True
+        assert segment.affected_by(2) == True
+
+
+def test_common_segment_affected_by_segment():
+    for segment_type in segment_types:
+        log.debug(segment_type)
+        segment = segment_type.example(start=3, size=10)
+        segment.affected_by = Mock()
+        other = Mock()
+        other.start = 8
+        other.stop = 13
+        segment.intersects_segment(other)
+        assert segment.affected_by.called_once_with(start=8)
+
+
 def test_common_segment_subtract_from_start():
     for segment_type in segment_types:
         segment = segment_type.example(start=3, size=42)
