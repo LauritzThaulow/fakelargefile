@@ -38,6 +38,33 @@ class AbstractSegment(object):
         """
         return self.start + self.size
 
+    def parse_slice(self, start, stop, local=False):
+        """
+        Convert start and stop slice attributes to actual indices.
+
+        :param int start: If None, set to self.start.
+        :param int stop: If None, set to self.stop.
+        :param bool local: If True, return as a slice relative to the start
+            of the segment.
+
+        A ValueError is raised if this condition does not hold::
+
+            self.start <= start <= stop <= self.stop
+        """
+        if start is None:
+            start = self.start
+        if stop is None:
+            stop = self.stop
+        if not (self.start <= start <= stop <= self.stop):
+            raise ValueError((
+                "Arguments start={} and stop={} do not fulfill the "
+                "constraint {} == self.start <= start <= stop <= self.stop "
+                "== {}").format(start, stop, self.start, self.stop))
+        if local:
+            start -= self.start
+            stop -= self.start
+        return start, stop
+
     def intersects(self, start, stop):
         """
         Return True if some part of other is inside self.
