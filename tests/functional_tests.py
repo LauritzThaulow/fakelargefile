@@ -33,7 +33,7 @@ your programs, too.
 
 
 def test_usage():
-    flf = FakeLargeFile(RepeatingSegment.example(start=0, size="10G"))
+    flf = FakeLargeFile([RepeatingSegment.example(start=0, size="10G")])
     assert flf.readline().strip() == "GNU GENERAL PUBLIC LICENSE"
     deleted = flf.deleteline(count=2)
     assert flf.read(10).strip() == "Copyright"
