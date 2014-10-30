@@ -105,6 +105,12 @@ def test_common_segment_affected_by():
         assert segment.affected_by(4) == True
         assert segment.affected_by(3) == True
         assert segment.affected_by(2) == True
+        try:
+            segment.affected_by(3.1)
+        except ValueError:
+            assert True
+        else:
+            assert False
 
 
 def test_common_segment_affected_by_segment():
@@ -129,6 +135,8 @@ def test_common_segment_index():
         assert segment.index(content[3:], 6) == segment.start + 3
         assert segment.index(
             content[3:-2], 6, end_pos=True) == segment.stop - 2
+        assert segment.index("", 4, 6) == 4
+        assert segment.index("", 4, 4) == 4
 
 
 def test_common_segment_subtract_from_start():
@@ -177,7 +185,7 @@ def test_common_segment_subtract_from_middle():
 def test_common_segment_subtract_disjunct():
     for segment_type in segment_types:
         segment = segment_type.example(start=8, size=32)
-        for start, stop in ((1, 7), (1, 8), (40, 100), (41, 293)):
+        for start, stop in ((1, 7), (1, 8), (40, 100), (41, 293), (15, 12)):
             log.debug("Trying to intersect {}->{} with {}->{}".format(
                 start, stop, 8, 40))
             try:
@@ -203,6 +211,55 @@ def test_common_segment_cut_in_half():
         assert len(last) == len(str(last)) == 29
         assert last.start == 11
         assert last.stop == 40
+
+
+def test_common_segment_cut_at():
+    for segment_type in segment_types:
+        log.debug(segment_type)
+        segment = segment_type.example(start=3, size=10)
+        segment.cut = Mock()
+        segment.cut_at(5)
+        segment.cut.assert_called_once_with(5, 5)
+
+
+def test_common_segment___getitem__not_covered():
+    for segment_type in segment_types:
+        log.debug(segment_type)
+        segment = segment_type.example(start=3, size=10)
+        for tpl in ((4, 9), (9, 4), (9, 4, -1), (3, 10, 2)):
+            try:
+                segment.__getitem__(slice(*tpl))
+            except IndexError:
+                assert True
+            else:
+                assert False
+
+
+def test_common_segment_copy():
+    for segment_type in segment_types:
+        log.debug(segment_type)
+        segment = segment_type.example(start=3, size=10)
+        cp = segment.copy()
+        assert cp.start == segment.start
+        assert cp.stop == segment.stop
+        assert cp.size == segment.size
+        assert str(cp) == str(segment)
+        cp = segment.copy(start=0)
+        assert cp.start == 0
+        assert cp.stop == 10
+        assert cp.size == 10
+        assert str(cp) == str(segment)
+
+
+def test_common_segment_substring():
+    for segment_type in segment_types:
+        log.debug(segment_type)
+        segment = segment_type.example(start=3, size=10)
+        content = str(segment)
+        assert segment.substring(3, 3) == ""
+        assert segment.substring(3, 10) == content[:7]
+        assert segment.substring(6, 7) == content[3]
+        assert segment.substring(8, 13) == content[-5:]
 
 
 def test_LiteralSegment():
@@ -231,10 +288,31 @@ def test_HomogenousSegment():
     assert hs.size == 8
     assert str(hs) == "\x00" * 8
     assert hs.index("\x00", 9, 11, end_pos=True) == 10
+    assert hs.index("\x00" * 2, 9, 11, end_pos=True) == 11
+    index_test_args = (
+        ("ab", None, None), ("a", None, None), ("\x00", 9, 4),
+        ("\x00" * 9, None, None))
+    for tpl in index_test_args:
+        try:
+            hs.index(*tpl)
+        except ValueError:
+            assert True
+        else:
+            assert False
+    try:
+        HomogenousSegment(start=0, size=8, char="aa")
+    except ValueError:
+        assert True
+    else:
+        assert False
 
 
 def test_RepeatingSegment():
-    rs = RepeatingSegment(start=3, size=13, text="abcd")
-    assert str(rs) == "abcdabcdabcda"
+    rs = RepeatingSegment(start=3, size=333, text="abcd")
+    assert str(rs) == "abcd" * (333 // 4) + "a"
     assert rs.index("cdab", 3) == 5
     assert rs.index("dabcdabcd", 3) == 6
+    assert rs.substring(5, 5 + 2 + 5 * 4 + 1) == "cd" + "abcd" * 5 + "a"
+    assert rs.substring(5, 5 + 2 + 5 * 4) == "cd" + "abcd" * 5
+    assert rs.substring(3, 3 + 5 * 4) == "abcd" * 5
+    assert rs.substring(7, 7 + 5 * 4) == "abcd" * 5

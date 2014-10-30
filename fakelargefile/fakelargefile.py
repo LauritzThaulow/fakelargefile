@@ -30,7 +30,7 @@ class FakeLargeFile(object):
         If no segments are affected, raise NoneAffected
         """
         for index, seg in enumerate(self.segments):
-            if segment.affected_by(seg):
+            if seg.affected_by_segment(segment):
                 return index
         raise NoneAffected
 

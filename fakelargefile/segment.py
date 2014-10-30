@@ -96,6 +96,8 @@ class AbstractSegment(object):
         Being affected by means that this segment will be split, sliced
         and/or moved.
         """
+        if not isinstance(index, int):
+            raise ValueError()
         return index < self.stop
 
     def affected_by_segment(self, segment):
@@ -198,7 +200,7 @@ class AbstractSegment(object):
         """
         Return the slice from the start of this segment to stop.
         """
-        return type(self)(self.start, self.text[:stop - self.start])
+        raise NotImplementedError()
 
     @abstractmethod
     def slice_to_stop_from(self, start):
@@ -209,14 +211,14 @@ class AbstractSegment(object):
 
             segment.slice_to_stop_from(x).start == segment.start + x
         """
-        return type(self)(start, self.text[start - self.start:])
+        raise NotImplementedError()
 
     @abstractclassmethod
     def example(cls, start, size):  # @NoSelf
         """
         Return an example segment of this class with the given size and start.
         """
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def copy(self, start=None):
@@ -228,7 +230,7 @@ class AbstractSegment(object):
             str(self) == str(self.copy(start=x))
 
         """
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def index(self, string, start=None, stop=None, end_pos=False):
@@ -244,7 +246,7 @@ class AbstractSegment(object):
 
         If the string is not found, a ValueError will be raised.
         """
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def substring(self, start, stop):
@@ -258,7 +260,7 @@ class AbstractSegment(object):
         Start and stop may also each be None, in which case it is set to
         self.start and self.stop, respectively.
         """
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def __str__(self):
@@ -270,7 +272,7 @@ class AbstractSegment(object):
            consumption. Should only be used when you know this is not a
            problem.
         """
-        pass
+        raise NotImplementedError()
 
 
 @register_segment
@@ -326,7 +328,7 @@ asdlk vonenasdin go oxzihvejnvoai shf vnje naon vjln aadve
 class HomogenousSegment(AbstractSegment):
     def __init__(self, start, size, char):
         super(HomogenousSegment, self).__init__(start, size)
-        if not isinstance(char, basestring) and len(char) == 1:
+        if not (isinstance(char, basestring) and len(char) == 1):
             raise ValueError(
                 "Argument char must be a single byte, not {!r}.".format(char))
         self.char = char
@@ -347,13 +349,11 @@ class HomogenousSegment(AbstractSegment):
         return type(self)(start, self.size, self.char)
 
     def index(self, string, start=None, stop=None, end_pos=False):
-        if len(set(string)) != 1:
+        if len(set(string)) > 1:
             raise ValueError()
-        if string[0] != self.char:
+        if string and string[0] != self.char:
             raise ValueError()
         start, stop = self.parse_slice(start, stop)
-        if not (self.start <= start < stop <= self.stop):
-            raise ValueError()
         if stop - start < len(string):
             raise ValueError()
         if end_pos:
@@ -411,18 +411,17 @@ class RepeatingSegment(AbstractSegment):
     def substring(self, start, stop):
         start, stop = self.parse_slice(start, stop, local=True)
         length = stop - start
-        modulus_start = start % self.size
-        modulus_stop = modulus_start + (stop - start)
-        if length < 2 * self.size:
-            return self.text_thrice[modulus_start:modulus_stop]
-        ret = []
-        ret.append(self.text[modulus_start:])
-        size_multiple = length - (self.size - modulus_start) - modulus_stop
-        assert size_multiple % self.size == 0
-        whole_lengths = size_multiple / self.size
-        ret.append(self.text * whole_lengths)
-        ret.append(self.text[:modulus_stop])
-        return "".join(ret)
+        rep_size = len(self.text)
+        modulus_start = start % rep_size
+        modulus_start_plus_size = modulus_start + length
+        if length < 2 * rep_size:
+            return self.text_thrice[modulus_start:modulus_start_plus_size]
+        head = self.text[modulus_start:]
+        tail = self.text[:stop % rep_size]
+        size_multiple = length - len(head) - len(tail)
+        assert size_multiple % rep_size == 0
+        whole_lengths = size_multiple // rep_size
+        return "".join([head, self.text * whole_lengths, tail])
 
     def __str__(self):
         return (self.text * (self.size // len(self.text) + 1))[:self.size]
