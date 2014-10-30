@@ -6,6 +6,8 @@ still be more useful than a plain old file.
 '''
 
 
+import pkg_resources
+
 from fakelargefile.segment.abc import AbstractSegment, register_segment
 from fakelargefile.tools import parse_size
 
@@ -24,17 +26,8 @@ class LiteralSegment(AbstractSegment):
 
     @classmethod
     def example(cls, start, size):
-        basis = """\
-aslkjf aslkjf lkasjdf lk jwelk vnzlkewlnas alksfjasdjflkajsdlfkj dsalf ljkasd
-sadlf jl awlekjfasldvj oienzl nvlan lkj asdfjlkasdj lfkajsd ljfkalkjas dj
-sad flkjaslkfienvoiwanvoasvonon  sdan vn ovon von eaon awonv on v nowaein
-sald flavne
-
-asld flkasjdfl kaslk flkasj dflkajsflaksdjf
-
-asdfl kjasl kveln alvaielnalkasfnals lfnvin neniviennievnievninievsa,sdn las
-asdlk vonenasdin go oxzihvejnvoai shf vnje naon vjln aadve
-        """
+        basis = pkg_resources.resource_stream(
+            "fakelargefile", "GPLv3.txt").read()
         size = parse_size(size)
         basis = basis * (size // len(basis) + 1)
         return cls(start, basis[:size])
