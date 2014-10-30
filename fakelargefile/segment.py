@@ -67,11 +67,12 @@ class AbstractSegment(object):
 
     def intersects(self, start, stop):
         """
-        Return True if some part of other is inside self.
+        Return True if some part of the interval start-stop is inside self.
 
-        Returns True even if other is of length 0, if it is *inside* self.
+        Returns True even if start-stop is of length 0, *if* it is inside
+        self.
 
-        Returns False if other is merely adjacent.
+        Returns False if start-stop is merely adjacent.
         """
         if self.start < stop < self.stop:
             return True
@@ -136,25 +137,6 @@ class AbstractSegment(object):
         """
         return self.size
 
-    @abstractmethod
-    def __str__(self):
-        """
-        Return the entire object as a string.
-
-        .. warning: Actually builds a string representation of something that
-           may be extremely large. Doesn't care at all about memory
-           consumption. Should only be used when you know this is not a
-           problem.
-        """
-        pass
-
-    @abstractclassmethod
-    def example(cls, start, size):  # @NoSelf
-        """
-        Return an example segment of this class with the given size and start.
-        """
-        pass
-
     def __getitem__(self, slice_):
         """
         Generic slicing implementation.
@@ -194,6 +176,13 @@ class AbstractSegment(object):
         """
         return type(self)(start, self.text[start - self.start:])
 
+    @abstractclassmethod
+    def example(cls, start, size):  # @NoSelf
+        """
+        Return an example segment of this class with the given size and start.
+        """
+        pass
+
     @abstractmethod
     def copy(self, start=None):
         """
@@ -206,6 +195,18 @@ class AbstractSegment(object):
         """
         pass
 
+    @abstractmethod
+    def __str__(self):
+        """
+        Return the entire object as a string.
+
+        .. warning: Actually builds a string representation of something that
+           may be extremely large. Doesn't care at all about memory
+           consumption. Should only be used when you know this is not a
+           problem.
+        """
+        pass
+
 
 @register_segment
 class LiteralSegment(AbstractSegment):
@@ -213,8 +214,11 @@ class LiteralSegment(AbstractSegment):
         super(LiteralSegment, self).__init__(start, len(text))
         self.text = text
 
-    def __str__(self):
-        return self.text
+    def slice_from_start_to(self, stop):
+        return type(self)(self.start, self.text[:stop - self.start])
+
+    def slice_to_stop_from(self, start):
+        return type(self)(start, self.text[start - self.start:])
 
     @classmethod
     def example(cls, start, size):
@@ -238,11 +242,8 @@ asdlk vonenasdin go oxzihvejnvoai shf vnje naon vjln aadve
             start = self.start
         return type(self)(start, self.text)
 
-    def slice_from_start_to(self, stop):
-        return type(self)(self.start, self.text[:stop - self.start])
-
-    def slice_to_stop_from(self, start):
-        return type(self)(start, self.text[start - self.start:])
+    def __str__(self):
+        return self.text
 
 
 @register_segment
@@ -251,8 +252,11 @@ class HomogenousSegment(AbstractSegment):
         super(HomogenousSegment, self).__init__(start, size)
         self.char = char
 
-    def __str__(self):
-        return self.char * self.size
+    def slice_from_start_to(self, stop):
+        return type(self)(self.start, stop - self.start, self.char)
+
+    def slice_to_stop_from(self, start):
+        return type(self)(start, self.stop - start, self.char)
 
     @classmethod
     def example(cls, start, size):
@@ -263,11 +267,8 @@ class HomogenousSegment(AbstractSegment):
             start = self.start
         return type(self)(start, self.size, self.char)
 
-    def slice_from_start_to(self, stop):
-        return type(self)(self.start, stop - self.start, self.char)
-
-    def slice_to_stop_from(self, start):
-        return type(self)(start, self.stop - start, self.char)
+    def __str__(self):
+        return self.char * self.size
 
 
 @register_segment
@@ -276,8 +277,13 @@ class RepeatingSegment(AbstractSegment):
         super(RepeatingSegment, self).__init__(start, size)
         self.text = text
 
-    def __str__(self):
-        return (self.text * (self.size // len(self.text) + 1))[:self.size]
+    def slice_from_start_to(self, stop):
+        return type(self)(self.start, stop - self.start, self.text)
+
+    def slice_to_stop_from(self, start):
+        split_at = start - self.start
+        text = self.text[split_at:] + self.text[:split_at]
+        return type(self)(start, self.stop - start, text)
 
     @classmethod
     def example(cls, start, size):
@@ -290,10 +296,5 @@ class RepeatingSegment(AbstractSegment):
             start = self.start
         return type(self)(start, self.size, self.text)
 
-    def slice_from_start_to(self, stop):
-        return type(self)(self.start, stop - self.start, self.text)
-
-    def slice_to_stop_from(self, start):
-        split_at = start - self.start
-        text = self.text[split_at:] + self.text[:split_at]
-        return type(self)(start, self.stop - start, text)
+    def __str__(self):
+        return (self.text * (self.size // len(self.text) + 1))[:self.size]
