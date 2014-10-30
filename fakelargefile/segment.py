@@ -196,6 +196,22 @@ class AbstractSegment(object):
         pass
 
     @abstractmethod
+    def index(self, string, start=None, stop=None, end_pos=False):
+        """
+        Return the index of the next occurence of text.
+
+        :param str string: The text to search for
+        :param int start: The index to start at, self.start by default.
+        :param int stop: The index at which to stop searching, self.stop by
+            default.
+        :param bool end_pos: Return the index after the end of the found
+            string instead of the index of the beginning.
+
+        If the string is not found, a ValueError will be raised.
+        """
+        pass
+
+    @abstractmethod
     def __str__(self):
         """
         Return the entire object as a string.
@@ -242,6 +258,13 @@ asdlk vonenasdin go oxzihvejnvoai shf vnje naon vjln aadve
             start = self.start
         return type(self)(start, self.text)
 
+    def index(self, string, start=None, stop=None, end_pos=False):
+        local_start, local_stop = self.parse_slice(start, stop, local=True)
+        index = self.text.index(string, local_start, local_stop)
+        if end_pos:
+            index += len(string)
+        return self.start + index
+
     def __str__(self):
         return self.text
 
@@ -267,6 +290,21 @@ class HomogenousSegment(AbstractSegment):
             start = self.start
         return type(self)(start, self.size, self.char)
 
+    def index(self, string, start=None, stop=None, end_pos=False):
+        if len(set(string)) != 1:
+            raise ValueError()
+        if string[0] != self.char:
+            raise ValueError()
+        start, stop = self.parse_slice(start, stop)
+        if not (self.start <= start < stop <= self.stop):
+            raise ValueError()
+        if stop - start < len(string):
+            raise ValueError()
+        if end_pos:
+            return start + len(string)
+        else:
+            return start
+
     def __str__(self):
         return self.char * self.size
 
@@ -276,6 +314,8 @@ class RepeatingSegment(AbstractSegment):
     def __init__(self, start, size, text):
         super(RepeatingSegment, self).__init__(start, size)
         self.text = text
+        # For speedy wrapping operations
+        self.text_thrice = text * 3
 
     def slice_from_start_to(self, stop):
         return type(self)(self.start, stop - self.start, self.text)
@@ -295,6 +335,18 @@ class RepeatingSegment(AbstractSegment):
         if start is None:
             start = self.start
         return type(self)(start, self.size, self.text)
+
+    def index(self, string, start=None, stop=None, end_pos=False):
+        start, stop = self.parse_slice(start, stop, local=True)
+        length = min(stop - start, self.size + len(string))
+        in_text_start = start % self.size
+        to_add = start - in_text_start
+        assert to_add + in_text_start == start
+        index = self.text_thrice.index(
+            string, in_text_start, in_text_start + length)
+        if end_pos:
+            index += len(string)
+        return self.start + to_add + index
 
     def __str__(self):
         return (self.text * (self.size // len(self.text) + 1))[:self.size]

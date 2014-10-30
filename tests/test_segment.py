@@ -119,6 +119,18 @@ def test_common_segment_affected_by_segment():
         assert segment.affected_by.called_once_with(start=8)
 
 
+def test_common_segment_index():
+    for segment_type in segment_types:
+        log.debug(segment_type)
+        segment = segment_type.example(start=3, size=10)
+        content = str(segment)
+        assert segment.index(content[0]) == segment.start
+        assert segment.index(content) == segment.start
+        assert segment.index(content[3:], 6) == segment.start + 3
+        assert segment.index(
+            content[3:-2], 6, end_pos=True) == segment.stop - 2
+
+
 def test_common_segment_subtract_from_start():
     for segment_type in segment_types:
         segment = segment_type.example(start=3, size=42)
@@ -199,6 +211,12 @@ def test_LiteralSegment():
     assert ls.start == 17
     assert ls.text == str(ls) == text
     assert ls.size == 10
+    try:
+        ls.index("xyz")
+    except ValueError:
+        assert True
+    else:
+        assert False
 
 
 def test_HomogenousSegment():
@@ -207,8 +225,11 @@ def test_HomogenousSegment():
     assert hs.stop == 11
     assert hs.size == 8
     assert str(hs) == "\x00" * 8
+    assert hs.index("\x00", 9, 11, end_pos=True) == 10
 
 
 def test_RepeatingSegment():
     rs = RepeatingSegment(start=3, size=13, text="abcd")
     assert str(rs) == "abcdabcdabcda"
+    assert rs.index("cdab", 3) == 5
+    assert rs.index("dabcdabcd", 3) == 6
