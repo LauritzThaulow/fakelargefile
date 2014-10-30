@@ -131,6 +131,41 @@ class AbstractSegment(object):
                 "Unforseen case: does {}->{} intersect {}->{}".format(
                     start, stop, self.start, self.stop))
 
+    def cut_at(self, index):
+        """
+        Cut self in two at the given index.
+
+        Syntactic sugar for self.cut(index, index)
+        """
+        return self.cut(index, index)
+
+    def readline(self, pos):
+        """
+        Return the line starting at pos and ending after the next newline.
+
+        The final line of the segment may not end in a newline.
+        """
+        try:
+            stop_index = self.index("\n", pos, end_pos=True)
+        except ValueError:
+            return self.substring(pos, None)
+        else:
+            return self.substring(pos, stop_index)
+
+    def readlines(self, pos):
+        """
+        Return a list of all the lines starting at pos until the segment ends.
+
+        The final line of the segment may not end in a newline.
+        """
+        ret = []
+        while True:
+            line = self.readline(pos)
+            pos += len(line)
+            ret.append(line)
+            if pos == self.stop:
+                return ret
+
     def __len__(self):
         """
         The lenght of the segment in bytes.
@@ -212,6 +247,20 @@ class AbstractSegment(object):
         pass
 
     @abstractmethod
+    def substring(self, start, stop):
+        """
+        The substring from start to stop.
+
+        Valid values for start and stop are such that::
+
+            self.start <= start <= stop <= self.stop
+
+        Start and stop may also each be None, in which case it is set to
+        self.start and self.stop, respectively.
+        """
+        pass
+
+    @abstractmethod
     def __str__(self):
         """
         Return the entire object as a string.
@@ -265,6 +314,10 @@ asdlk vonenasdin go oxzihvejnvoai shf vnje naon vjln aadve
             index += len(string)
         return self.start + index
 
+    def substring(self, start, stop):
+        local_start, local_stop = self.parse_slice(start, stop, local=True)
+        return self.text[local_start:local_stop]
+
     def __str__(self):
         return self.text
 
@@ -273,6 +326,9 @@ asdlk vonenasdin go oxzihvejnvoai shf vnje naon vjln aadve
 class HomogenousSegment(AbstractSegment):
     def __init__(self, start, size, char):
         super(HomogenousSegment, self).__init__(start, size)
+        if not isinstance(char, basestring) and len(char) == 1:
+            raise ValueError(
+                "Argument char must be a single byte, not {!r}.".format(char))
         self.char = char
 
     def slice_from_start_to(self, stop):
@@ -304,6 +360,10 @@ class HomogenousSegment(AbstractSegment):
             return start + len(string)
         else:
             return start
+
+    def substring(self, start, stop):
+        start, stop = self.parse_slice(start, stop)
+        return self.char * (stop - start)
 
     def __str__(self):
         return self.char * self.size
@@ -347,6 +407,22 @@ class RepeatingSegment(AbstractSegment):
         if end_pos:
             index += len(string)
         return self.start + to_add + index
+
+    def substring(self, start, stop):
+        start, stop = self.parse_slice(start, stop, local=True)
+        length = stop - start
+        modulus_start = start % self.size
+        modulus_stop = modulus_start + (stop - start)
+        if length < 2 * self.size:
+            return self.text_thrice[modulus_start:modulus_stop]
+        ret = []
+        ret.append(self.text[modulus_start:])
+        size_multiple = length - (self.size - modulus_start) - modulus_stop
+        assert size_multiple % self.size == 0
+        whole_lengths = size_multiple / self.size
+        ret.append(self.text * whole_lengths)
+        ret.append(self.text[:modulus_stop])
+        return "".join(ret)
 
     def __str__(self):
         return (self.text * (self.size // len(self.text) + 1))[:self.size]

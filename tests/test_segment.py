@@ -92,7 +92,7 @@ def test_common_segment_intersects_segment():
         other.start = 8
         other.stop = 13
         segment.intersects_segment(other)
-        assert segment.intersects.called_once_with(start=8, stop=13)
+        segment.intersects.assert_called_once_with(8, 13)
 
 
 def test_common_segment_affected_by():
@@ -115,8 +115,8 @@ def test_common_segment_affected_by_segment():
         other = Mock()
         other.start = 8
         other.stop = 13
-        segment.intersects_segment(other)
-        assert segment.affected_by.called_once_with(start=8)
+        segment.affected_by_segment(other)
+        segment.affected_by.assert_called_once_with(8)
 
 
 def test_common_segment_index():
@@ -217,6 +217,11 @@ def test_LiteralSegment():
         assert True
     else:
         assert False
+    assert ls.readline(20) == "defghij"
+    ls = LiteralSegment(start=4, text="as\ndf\ngh\n")
+    lines = ls.readlines(5)
+    log.debug(lines)
+    assert lines == ["s\n", "df\n", "gh\n"]
 
 
 def test_HomogenousSegment():
