@@ -1,9 +1,10 @@
 '''
-Tests for the fakelargefile.segment module
+Tests for the fakelargefile.segment.abc submodule
 '''
 
 
 import logging
+
 from mock import Mock
 from fakelargefile.segment import (
     segment_types, LiteralSegment, HomogenousSegment, RepeatingSegment)
@@ -260,59 +261,3 @@ def test_common_segment_substring():
         assert segment.substring(3, 10) == content[:7]
         assert segment.substring(6, 7) == content[3]
         assert segment.substring(8, 13) == content[-5:]
-
-
-def test_LiteralSegment():
-    text = "abcdefghij"
-    ls = LiteralSegment(start=17, text=text)
-    assert ls.start == 17
-    assert ls.text == str(ls) == text
-    assert ls.size == 10
-    try:
-        ls.index("xyz")
-    except ValueError:
-        assert True
-    else:
-        assert False
-    assert ls.readline(20) == "defghij"
-    ls = LiteralSegment(start=4, text="as\ndf\ngh\n")
-    lines = ls.readlines(5)
-    log.debug(lines)
-    assert lines == ["s\n", "df\n", "gh\n"]
-
-
-def test_HomogenousSegment():
-    hs = HomogenousSegment(start=3, size=8, char="\x00")
-    assert hs.start == 3
-    assert hs.stop == 11
-    assert hs.size == 8
-    assert str(hs) == "\x00" * 8
-    assert hs.index("\x00", 9, 11, end_pos=True) == 10
-    assert hs.index("\x00" * 2, 9, 11, end_pos=True) == 11
-    index_test_args = (
-        ("ab", None, None), ("a", None, None), ("\x00", 9, 4),
-        ("\x00" * 9, None, None))
-    for tpl in index_test_args:
-        try:
-            hs.index(*tpl)
-        except ValueError:
-            assert True
-        else:
-            assert False
-    try:
-        HomogenousSegment(start=0, size=8, char="aa")
-    except ValueError:
-        assert True
-    else:
-        assert False
-
-
-def test_RepeatingSegment():
-    rs = RepeatingSegment(start=3, size=333, text="abcd")
-    assert str(rs) == "abcd" * (333 // 4) + "a"
-    assert rs.index("cdab", 3) == 5
-    assert rs.index("dabcdabcd", 3) == 6
-    assert rs.substring(5, 5 + 2 + 5 * 4 + 1) == "cd" + "abcd" * 5 + "a"
-    assert rs.substring(5, 5 + 2 + 5 * 4) == "cd" + "abcd" * 5
-    assert rs.substring(3, 3 + 5 * 4) == "abcd" * 5
-    assert rs.substring(7, 7 + 5 * 4) == "abcd" * 5
