@@ -78,7 +78,10 @@ class FakeLargeFile(object):
         """
         Insert a copy of segment which start where the last segment stops.
         """
-        last_segment_stop = self.segments[-1].stop
+        if self.segments:
+            last_segment_stop = self.segments[-1].stop
+        else:
+            last_segment_stop = 0
         self.segments.append(segment.copy(start=last_segment_stop))
         self.segment_start.append(last_segment_stop)
 
@@ -95,3 +98,12 @@ class FakeLargeFile(object):
                     return "".join(line)
                 else:
                     break
+
+    def __str__(self):
+        """
+        Return the entire file as a string.
+
+        .. warning:: The returned string may be too large to fit in RAM and
+        cause a MemoryError.
+        """
+        return "".join(str(segment) for segment in self.segments)
