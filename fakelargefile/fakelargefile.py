@@ -10,9 +10,7 @@ from __future__ import absolute_import, division
 from bisect import bisect_left
 from itertools import islice
 
-
-class NoneAffected(Exception):
-    pass
+from fakelargefile.errors import NoContainingSegment
 
 
 class FakeLargeFile(object):
@@ -23,28 +21,20 @@ class FakeLargeFile(object):
         self.segment_start = [seg.start for seg in segments]
         self.pos = 0
 
-    def first_affected_by(self, segment):
+    def segment_containing(self, pos):
         """
-        Index of first element of self.segments affected by the given segment.
+        Return an integer i such that self.segments[i] contains pos.
 
-        If no segments are affected, raise NoneAffected
-        """
-        for index, seg in enumerate(self.segments):
-            if seg.affected_by_segment(segment):
-                return index
-        raise NoneAffected
+        If is in in between segments, return the one starting at pos.
 
-    def current_segment_index(self):
-        """
-        Return the index of the segment which contains self.pos.
-
-        If self.pos is at the end of the last segment, return
-        len(self.segments).
+        If pos is at the end of the last segment, return len(self.segments).
         """
         index = bisect_left(self.segment_start, self.pos)
         if index == 0:
             # Special case for when self.pos == 0.
             return 0
+        elif index == len(self.segments):
+            raise NoContainingSegment()
         else:
             return index - 1
 
@@ -54,15 +44,15 @@ class FakeLargeFile(object):
 
         The current one is the one which contains or starts with self.pos.
         """
-        return islice(self.segments, self.current_segment_index(), None)
+        return islice(self.segments, self.segment_containing(self.pos), None)
 
     def insert(self, segment):
         """
         Insert the segment, shift following bytes to the right.
         """
         try:
-            first_affected = self.first_affected_by(segment)
-        except NoneAffected:
+            first_affected = self.segment_containing(segment.start)
+        except NoContainingSegment:
             self.segments.append(segment)
             self.segment_start.append(segment.start)
         else:
@@ -73,6 +63,30 @@ class FakeLargeFile(object):
             self.segments[first_affected:] = altered
             self.segment_start[first_affected:] = [
                 seg.start for seg in altered]
+
+    def delete(self, start, stop):
+        """
+        Delete from start to stop and move what follows adjacent to start.
+        """
+        try:
+            first_affected = self.segment_containing(start)
+        except NoContainingSegment:
+            return
+        before = self.segments[first_affected].cut_at(start)[0:0]
+        try:
+            last_affected = self.segment_containing(stop)
+        except NoContainingSegment:
+            last_affected = len(self.segments)
+            after = []
+        else:
+            after = self.segments[last_affected].cut_at(stop)[-1:-1].copy(
+                start=start)
+        altered = before + after
+        for segment in self.segments[last_affected + 1:]:
+            altered.append(segment.copy(start=segment.start - (stop - start)))
+        self.segments[first_affected:] = altered
+        self.segment_start[first_affected:] = [
+            seg.start for seg in altered]
 
     def append(self, segment):
         """
@@ -98,6 +112,23 @@ class FakeLargeFile(object):
                     return "".join(line)
                 else:
                     break
+
+    def deleteline(self, count=1):
+        """
+        Delete n lines starting from the current position.
+        """
+        found_newlines = 0
+        pos = self.pos
+        for seg in self.current_segment_iter():
+            if found_newlines < count:
+                break
+            try:
+                pos = seg.index("\n", pos, end_pos=True)
+            except IndexError:
+                continue
+            else:
+                found_newlines += 1
+        self.delete(self.pos, pos)
 
     def __str__(self):
         """

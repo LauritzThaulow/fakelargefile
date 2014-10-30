@@ -60,3 +60,26 @@ def test_append_and___str__():
     flf.append(LS(0, "and "))
     flf.append(LS(0, "bacon."))
     assert str(flf) == "We've got sausage and bacon."
+
+
+def test_append_literal():
+    flf = FakeLargeFile()
+    flf.append_literal("""\
+Liptauer?
+No.
+Lancashire?
+No.
+White Stilton?
+No.
+Danish Blue?
+No.
+""")
+    assert flf.readline() == "Liptauer?\n"
+    assert flf.deleteline(2) == "No.\nLancashire?\n"
+    flf.readline()
+    assert flf.deleteline(3) == "White Stilton?\nNo.\nDanish Blue?\n"
+    assert str(flf) == """\
+Liptauer?
+No.
+No.
+"""
