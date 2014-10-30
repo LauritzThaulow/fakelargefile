@@ -1,3 +1,5 @@
 .project
 .pydevproject
 fakelargefile.egg-info/
+.coverage
+cover/
