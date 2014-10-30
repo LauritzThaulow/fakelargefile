@@ -1,42 +1,40 @@
 '''
-Tests for the fakelargefile.segment.abc submodule
+Test functionality common to all segment subclasses
 '''
 
 
 import logging
 
 from mock import Mock
-from fakelargefile.segment import (
-    segment_types, LiteralSegment, HomogenousSegment, RepeatingSegment)
+
+from fakelargefile.segment import segment_types
 
 
 log = logging.getLogger(__name__)
 
 
-def test_segment_types():
-    assert set(segment_types) == set([
-        LiteralSegment, HomogenousSegment, RepeatingSegment])
-
-
-def test_common_segment_functionality():
+def test_common_segment_example():
     for segment_type in segment_types:
         segment = segment_type.example(start=7, size=42)
+        assert isinstance(segment, segment_type)
         content = str(segment)
-        assert len(segment) == len(content) == 42
-        assert segment.start == 7
-        assert segment.stop == 7 + 42
-        try:
-            segment.start = 3
-        except AttributeError:
-            assert True
-        else:
-            assert False
-        segment = segment.copy(start=3)
-        assert segment.start == 3
-        assert segment.stop == 3 + 42
+        assert len(content) == 42
+        assert isinstance(content, str)
 
 
-def test_common_segment_str_size():
+def test_immutable():
+    for segment_type in segment_types:
+        segment = segment_type.example(start=7, size=42)
+        for attr in ("start", "stop", "size"):
+            try:
+                setattr(segment, attr, 3)
+            except AttributeError:
+                assert True
+            else:
+                assert False
+
+
+def test_size_as_si_prefix_string():
     for segment_type in segment_types:
         segment = segment_type.example(start=7, size="1k")
         assert segment.size == 1024
@@ -46,7 +44,7 @@ def test_common_segment_str_size():
         assert segment.size == int(0.003 * 1024 * 1024 * 1024)
 
 
-def test_common_segment_parse_slice():
+def test_parse_slice():
     for segment_type in segment_types:
         seg = segment_type.example(start=7, size=10)
         assert seg.parse_slice(None, None) == (7, 17)
@@ -68,7 +66,7 @@ def test_common_segment_parse_slice():
                 assert False
 
 
-def test_common_segment_intersects():
+def test_intersects():
     for segment_type in segment_types:
         log.debug(segment_type)
         segment = segment_type.example(start=3, size=10)
@@ -84,7 +82,7 @@ def test_common_segment_intersects():
         assert segment.intersects(15, 17) == False
 
 
-def test_common_segment_intersects_segment():
+def test_intersects_segment():
     for segment_type in segment_types:
         log.debug(segment_type)
         segment = segment_type.example(start=3, size=10)
@@ -96,7 +94,7 @@ def test_common_segment_intersects_segment():
         segment.intersects.assert_called_once_with(8, 13)
 
 
-def test_common_segment_affected_by():
+def test_affected_by():
     for segment_type in segment_types:
         log.debug(segment_type)
         segment = segment_type.example(start=3, size=10)
@@ -114,7 +112,7 @@ def test_common_segment_affected_by():
             assert False
 
 
-def test_common_segment_affected_by_segment():
+def test_affected_by_segment():
     for segment_type in segment_types:
         log.debug(segment_type)
         segment = segment_type.example(start=3, size=10)
@@ -126,21 +124,7 @@ def test_common_segment_affected_by_segment():
         segment.affected_by.assert_called_once_with(8)
 
 
-def test_common_segment_index():
-    for segment_type in segment_types:
-        log.debug(segment_type)
-        segment = segment_type.example(start=3, size=10)
-        content = str(segment)
-        assert segment.index(content[0]) == segment.start
-        assert segment.index(content) == segment.start
-        assert segment.index(content[3:], 6) == segment.start + 3
-        assert segment.index(
-            content[3:-2], 6, end_pos=True) == segment.stop - 2
-        assert segment.index("", 4, 6) == 4
-        assert segment.index("", 4, 4) == 4
-
-
-def test_common_segment_subtract_from_start():
+def test_cut_from_start():
     for segment_type in segment_types:
         segment = segment_type.example(start=3, size=42)
         content = str(segment)
@@ -153,7 +137,7 @@ def test_common_segment_subtract_from_start():
         assert result.stop == 8 + 37
 
 
-def test_common_segment_subtract_from_end():
+def test_cut_to_end():
     for segment_type in segment_types:
         segment = segment_type.example(start=8, size=37)
         content = str(segment)
@@ -166,7 +150,7 @@ def test_common_segment_subtract_from_end():
         assert segment.stop == 8 + 32
 
 
-def test_common_segment_subtract_from_middle():
+def test_cut_from_middle():
     for segment_type in segment_types:
         segment = segment_type.example(start=8, size=32)
         content = str(segment)
@@ -183,7 +167,7 @@ def test_common_segment_subtract_from_middle():
         assert last.stop == 40
 
 
-def test_common_segment_subtract_disjunct():
+def test_cut_disjunct():
     for segment_type in segment_types:
         segment = segment_type.example(start=8, size=32)
         for start, stop in ((1, 7), (1, 8), (40, 100), (41, 293), (15, 12)):
@@ -197,7 +181,7 @@ def test_common_segment_subtract_disjunct():
                 assert False
 
 
-def test_common_segment_cut_in_half():
+def test_cut_in_half():
     for segment_type in segment_types:
         segment = segment_type.example(start=8, size=32)
         content = str(segment)
@@ -214,7 +198,7 @@ def test_common_segment_cut_in_half():
         assert last.stop == 40
 
 
-def test_common_segment_cut_at():
+def test_cut_at():
     for segment_type in segment_types:
         log.debug(segment_type)
         segment = segment_type.example(start=3, size=10)
@@ -223,7 +207,7 @@ def test_common_segment_cut_at():
         segment.cut.assert_called_once_with(5, 5)
 
 
-def test_common_segment___getitem__not_covered():
+def test___getitem___not_covered():
     for segment_type in segment_types:
         log.debug(segment_type)
         segment = segment_type.example(start=3, size=10)
@@ -234,30 +218,3 @@ def test_common_segment___getitem__not_covered():
                 assert True
             else:
                 assert False
-
-
-def test_common_segment_copy():
-    for segment_type in segment_types:
-        log.debug(segment_type)
-        segment = segment_type.example(start=3, size=10)
-        cp = segment.copy()
-        assert cp.start == segment.start
-        assert cp.stop == segment.stop
-        assert cp.size == segment.size
-        assert str(cp) == str(segment)
-        cp = segment.copy(start=0)
-        assert cp.start == 0
-        assert cp.stop == 10
-        assert cp.size == 10
-        assert str(cp) == str(segment)
-
-
-def test_common_segment_substring():
-    for segment_type in segment_types:
-        log.debug(segment_type)
-        segment = segment_type.example(start=3, size=10)
-        content = str(segment)
-        assert segment.substring(3, 3) == ""
-        assert segment.substring(3, 10) == content[:7]
-        assert segment.substring(6, 7) == content[3]
-        assert segment.substring(8, 13) == content[-5:]
