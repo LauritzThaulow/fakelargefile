@@ -208,8 +208,9 @@ class FakeLargeFile(object):
             stop_index = min(stop, segment.stop)
             ret.append(segment.substring(start_index, stop_index))
             if stop_index == stop:
-                ret = "".join(ret)
-                if step != 1:
-                    return ret[::step]
-                else:
-                    return ret
+                break
+        ret = "".join(ret)
+        if step != 1:
+            return ret[::step]
+        else:
+            return ret
