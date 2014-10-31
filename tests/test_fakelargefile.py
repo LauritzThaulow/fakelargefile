@@ -47,6 +47,31 @@ def test_segment_containing():
         assert False
 
 
+def test_finditer():
+    flf = FakeLargeFile()
+    strings = [
+        "This is one segment. ", "This is another. ", "This is the last one."]
+    for string in strings:
+        flf.append_literal(string)
+    concat = "".join(strings)
+    fasit = []
+    idx = 0
+    while True:
+        try:
+            found_idx = concat.index("is", idx)
+        except ValueError:
+            break
+        else:
+            fasit.append(found_idx)
+            idx = found_idx + 1
+    ret = []
+    for idx in flf.finditer("is"):
+        print idx
+        ret.append(idx)
+    print ret, fasit
+    assert ret == fasit
+
+
 def test_insert():
     flf = FakeLargeFile()
     flf.insert(LS(start=0, text="a\nb"))

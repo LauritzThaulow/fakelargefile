@@ -52,7 +52,7 @@ class FakeLargeFile(object):
         """
         return islice(self.segments, self.segment_containing(self.pos), None)
 
-    def finditer(self, string, start_pos, end_pos=False):
+    def finditer(self, string, start_pos=0, end_pos=False):
         """
         Iterate over indices of occurences of string.
         """
@@ -61,10 +61,13 @@ class FakeLargeFile(object):
             while True:
                 try:
                     pos = seg.index(string, pos, end_pos=end_pos)
-                except IndexError:
+                except ValueError:
+                    pos = seg.stop
                     break
                 else:
                     yield pos
+                    if not end_pos:
+                        pos += len(string)
 
     def insert(self, segment):
         """
