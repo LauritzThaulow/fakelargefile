@@ -66,9 +66,7 @@ def test_finditer():
             idx = found_idx + 1
     ret = []
     for idx in flf.finditer("is"):
-        print idx
         ret.append(idx)
-    print ret, fasit
     assert ret == fasit
 
 
@@ -113,9 +111,32 @@ No.
     assert deleted == "No.\nLancashire?\n"
     flf.readline()
     assert flf.deleteline(3) == "White Stilton?\nNo.\nDanish Blue?\n"
-    print repr(str(flf))
     assert str(flf) == """\
 Liptauer?
 No.
 No.
 """
+
+
+def test_delete():
+    flf = FakeLargeFile()
+    flf.append_literal("abcd")
+    flf.append_literal(" hijk.")
+    flf.delete(11, 16)
+    flf.delete(8, 14)
+    flf.delete(2, 4)
+    assert str(flf) == "ab hij"
+
+
+def test___getitem__():
+    flf = FakeLargeFile()
+    flf.append_literal("abc")
+    flf.append_literal("defgh")
+    flf.append_literal("ijklmn")
+    print flf[::-1]
+    assert flf[::-1] == "nmlkjihgfedcba"
+    assert flf[3:1] == ""
+    assert flf[1:3:-1] == ""
+    assert flf[:] == "abcdefghijklmn"
+    assert flf[::2] == "acegikm"
+    assert flf[1::2] == "bdfhjln"

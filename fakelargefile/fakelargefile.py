@@ -12,7 +12,6 @@ from itertools import islice
 
 from fakelargefile.errors import NoContainingSegment
 from fakelargefile.segment import LiteralSegment
-from fakelargefile.tools import parse_size
 
 
 class FakeLargeFile(object):
@@ -107,6 +106,7 @@ class FakeLargeFile(object):
             segment = self.segments[last_affected]
             if stop == segment.start:
                 after = []
+                last_affected -= 1
             else:
                 after = [segment.cut_at(stop)[-1].copy(start=start)]
         altered = before + after
@@ -182,10 +182,11 @@ class FakeLargeFile(object):
         regular string.
         """
         start, stop, step = slice_.indices(self.size)
-        if step < 0:
-            start, stop = stop, start
-        if stop < start:
+        if (stop - start) * step < 0:
+            # step moves in the wrong direction
             return ""
+        if step < 0:
+            start, stop = stop + 1, start + 1
         ret = []
         for segment in self.segment_iter(start):
             start_index = max(start, segment.start)

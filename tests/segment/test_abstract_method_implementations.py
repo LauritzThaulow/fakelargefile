@@ -218,3 +218,10 @@ def test___getitem___not_covered():
                 assert True
             else:
                 assert False
+
+
+def test_repr():
+    for segment_type in segment_types:
+        log.debug(segment_type)
+        fasit = "{}(start={}, stop={})".format(segment_type.__name__, 3, 13)
+        assert repr(segment_type.example(start=3, size=10)) == fasit
