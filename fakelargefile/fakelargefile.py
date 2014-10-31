@@ -7,10 +7,12 @@ Created on Oct 25, 2014
 
 from __future__ import absolute_import, division
 
-from bisect import bisect_left
+from bisect import bisect
 from itertools import islice
 
 from fakelargefile.errors import NoContainingSegment
+from fakelargefile.segment import LiteralSegment
+from fakelargefile.tools import parse_size
 
 
 class FakeLargeFile(object):
@@ -20,6 +22,16 @@ class FakeLargeFile(object):
         self.segments = segments
         self.segment_start = [seg.start for seg in segments]
         self.pos = 0
+        self.update_size()
+
+    def update_size(self):
+        """
+        Set the size attribute to the position after the last segment
+        """
+        if self.segments:
+            self.size = self.segments[-1].stop
+        else:
+            self.size = 0
 
     def segment_containing(self, pos):
         """
@@ -27,24 +39,32 @@ class FakeLargeFile(object):
 
         If is in in between segments, return the one starting at pos.
 
-        If pos is at the end of the last segment, return len(self.segments).
+        If pos is at or beyond the end of the last segment, raise
+        NoContainingSegment.
         """
-        index = bisect_left(self.segment_start, self.pos)
-        if index == 0:
-            # Special case for when self.pos == 0.
-            return 0
-        elif index == len(self.segments):
+        if pos >= self.size:
             raise NoContainingSegment()
-        else:
-            return index - 1
+        return bisect(self.segment_start, pos) - 1
 
-    def current_segment_iter(self):
+    def segment_iter(self, pos):
         """
-        Return an iterator over self.segments starting from the current one.
-
-        The current one is the one which contains or starts with self.pos.
+        Iterate over self.segments starting from segment containing pos.
         """
         return islice(self.segments, self.segment_containing(self.pos), None)
+
+    def finditer(self, string, start_pos, end_pos=False):
+        """
+        Iterate over indices of occurences of string.
+        """
+        pos = start_pos
+        for seg in self.segment_iter(start_pos):
+            while True:
+                try:
+                    pos = seg.index(string, pos, end_pos=end_pos)
+                except IndexError:
+                    break
+                else:
+                    yield pos
 
     def insert(self, segment):
         """
@@ -55,6 +75,7 @@ class FakeLargeFile(object):
         except NoContainingSegment:
             self.segments.append(segment)
             self.segment_start.append(segment.start)
+            self.update_size()
         else:
             result = self.segments[first_affected].cut_at(segment.start)
             altered = [result[0], segment, result[1].copy(start=segment.stop)]
@@ -63,6 +84,7 @@ class FakeLargeFile(object):
             self.segments[first_affected:] = altered
             self.segment_start[first_affected:] = [
                 seg.start for seg in altered]
+            self.update_size()
 
     def delete(self, start, stop):
         """
@@ -72,39 +94,48 @@ class FakeLargeFile(object):
             first_affected = self.segment_containing(start)
         except NoContainingSegment:
             return
-        before = self.segments[first_affected].cut_at(start)[0:0]
+        before = self.segments[first_affected].cut_at(start)[0:1]
         try:
             last_affected = self.segment_containing(stop)
         except NoContainingSegment:
             last_affected = len(self.segments)
             after = []
         else:
-            after = self.segments[last_affected].cut_at(stop)[-1:-1].copy(
-                start=start)
+            segment = self.segments[last_affected]
+            if stop == segment.start:
+                after = []
+            else:
+                after = [segment.cut_at(stop)[-1].copy(start=start)]
         altered = before + after
         for segment in self.segments[last_affected + 1:]:
             altered.append(segment.copy(start=segment.start - (stop - start)))
         self.segments[first_affected:] = altered
         self.segment_start[first_affected:] = [
             seg.start for seg in altered]
+        self.update_size()
 
     def append(self, segment):
         """
         Insert a copy of segment which start where the last segment stops.
         """
-        if self.segments:
-            last_segment_stop = self.segments[-1].stop
-        else:
-            last_segment_stop = 0
-        self.segments.append(segment.copy(start=last_segment_stop))
-        self.segment_start.append(last_segment_stop)
+        self.segments.append(segment.copy(start=self.size))
+        self.segment_start.append(self.size)
+        self.update_size()
+
+    def append_literal(self, text):
+        """
+        Append a LiteralSegment with the given text
+        """
+        self.segments.append(LiteralSegment(self.size, text))
+        self.segment_start.append(self.size)
+        self.update_size()
 
     def readline(self):
         """
         Read up to and including the next newline character, and return it.
         """
         line = []
-        for seg in self.current_segment_iter():
+        for seg in self.segment_iter(self.pos):
             while True:
                 line.append(seg.readline(self.pos))
                 self.pos += len(line[-1])
@@ -119,16 +150,13 @@ class FakeLargeFile(object):
         """
         found_newlines = 0
         pos = self.pos
-        for seg in self.current_segment_iter():
-            if found_newlines < count:
+        for pos in self.finditer("\n", self.pos, end_pos=True):
+            found_newlines += 1
+            if found_newlines == count:
                 break
-            try:
-                pos = seg.index("\n", pos, end_pos=True)
-            except IndexError:
-                continue
-            else:
-                found_newlines += 1
+        deleted = self[self.pos:pos]
         self.delete(self.pos, pos)
+        return deleted
 
     def __str__(self):
         """
@@ -138,3 +166,31 @@ class FakeLargeFile(object):
         cause a MemoryError.
         """
         return "".join(str(segment) for segment in self.segments)
+
+    def __getitem__(self, slice_):
+        """
+        Random access read of the file content
+
+        The entire requested slice will be returned as a string. Keep memory
+        consumption in mind! This method will consume memory equivalent to
+        twice the size of the returned string.
+
+        Border conditions are handled in the same way as when slicing a
+        regular string.
+        """
+        start, stop, step = slice_.indices(self.size)
+        if step < 0:
+            start, stop = stop, start
+        if stop < start:
+            return ""
+        ret = []
+        for segment in self.segment_iter(start):
+            start_index = max(start, segment.start)
+            stop_index = min(stop, segment.stop)
+            ret.append(segment.substring(start_index, stop_index))
+            if stop_index == stop:
+                ret = "".join(ret)
+                if step != 1:
+                    return ret[::step]
+                else:
+                    return ret

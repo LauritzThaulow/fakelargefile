@@ -6,7 +6,7 @@ Created on Oct 25, 2014
 
 
 from mock import Mock
-from fakelargefile import FakeLargeFile, LiteralSegment
+from fakelargefile import FakeLargeFile, LiteralSegment, NoContainingSegment
 
 LS = LiteralSegment
 
@@ -25,7 +25,7 @@ def test___init__():
     assert flf.segments == flf.segment_start == []
 
 
-def test_first_affected_by():
+def test_segment_containing():
     segs = [
         LS(0, "Message "),
         LS(8, "for "),
@@ -33,9 +33,18 @@ def test_first_affected_by():
         LS(16, "Sir!"),
         ]
     flf = FakeLargeFile(segs)
-    assert flf.first_affected_by(LS(8, "asdf")) == 1
-    assert flf.first_affected_by(LS(11, "asdf")) == 1
-    assert flf.first_affected_by(LS(12, "asdf")) == 2
+    assert flf.segment_containing(0) == 0
+    assert flf.segment_containing(1) == 0
+    assert flf.segment_containing(7) == 0
+    assert flf.segment_containing(8) == 1
+    assert flf.segment_containing(15) == 2
+    assert flf.segment_containing(19) == 3
+    try:
+        flf.segment_containing(20)
+    except NoContainingSegment:
+        assert True
+    else:
+        assert False
 
 
 def test_insert():
@@ -75,9 +84,11 @@ Danish Blue?
 No.
 """)
     assert flf.readline() == "Liptauer?\n"
-    assert flf.deleteline(2) == "No.\nLancashire?\n"
+    deleted = flf.deleteline(2)
+    assert deleted == "No.\nLancashire?\n"
     flf.readline()
     assert flf.deleteline(3) == "White Stilton?\nNo.\nDanish Blue?\n"
+    print repr(str(flf))
     assert str(flf) == """\
 Liptauer?
 No.

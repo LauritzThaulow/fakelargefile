@@ -173,6 +173,13 @@ class AbstractSegment(object):
         """
         return self.size
 
+    def __repr__(self):
+        """
+        A nice string representation of this segment.
+        """
+        return "{}(start={}, stop={})".format(
+            type(self).__name__, self.start, self.stop)
+
     def __getitem__(self, slice_):
         """
         Generic slicing implementation.

@@ -3,3 +3,5 @@
 fakelargefile.egg-info/
 .coverage
 cover/
+.ipynb_checkpoints/
+*.ipynb
