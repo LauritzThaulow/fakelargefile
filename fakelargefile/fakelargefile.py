@@ -84,8 +84,14 @@ class FakeLargeFile(object):
             self.segment_start.append(segment.start)
             self.update_size()
         else:
-            result = self.segments[first_affected].cut_at(segment.start)
-            altered = [result[0], segment, result[1].copy(start=segment.stop)]
+            first_affected_segment = self.segments[first_affected]
+            if first_affected_segment.start != segment.start:
+                result = first_affected_segment.cut_at(segment.start)
+                altered = [
+                    result[0], segment, result[1].copy(start=segment.stop)]
+            else:
+                altered = [
+                    segment, first_affected_segment.copy(start=segment.stop)]
             for seg in self.segments[first_affected + 1:]:
                 altered.append(seg.copy(start=seg.start + segment.size))
             self.segments[first_affected:] = altered
@@ -101,7 +107,14 @@ class FakeLargeFile(object):
             first_affected = self.segment_containing(start)
         except NoContainingSegment:
             return
-        before = self.segments[first_affected].cut_at(start)[0:1]
+        else:
+            first_affected_segment = self.segments[first_affected]
+
+        if first_affected_segment.start == start:
+            before = []
+        else:
+            before = self.segments[first_affected].cut_at(start)[0:1]
+
         try:
             last_affected = self.segment_containing(stop)
         except NoContainingSegment:
@@ -114,6 +127,7 @@ class FakeLargeFile(object):
                 last_affected -= 1
             else:
                 after = [segment.cut_at(stop)[-1].copy(start=start)]
+
         altered = before + after
         for segment in self.segments[last_affected + 1:]:
             altered.append(segment.copy(start=segment.start - (stop - start)))
