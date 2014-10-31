@@ -32,14 +32,20 @@ your programs, too.
 """
 
 
+import logging
+
+
+log = logging.getLogger(__name__)
+
+
 def test_usage():
     flf = FakeLargeFile([RepeatingSegment.example(start=0, size="10G")])
     assert flf.readline().strip() == "GNU GENERAL PUBLIC LICENSE"
     deleted = flf.deleteline(count=2)
     assert flf.read(10).strip() == "Copyright"
     assert flf.readline() == (
-        " (C) 2007 Free Software Foundation, Inc. <http://fsf.org/>")
-    flf.insert(deleted)
+        " (C) 2007 Free Software Foundation, Inc. <http://fsf.org/>\n")
+    flf.insert_literal(deleted)
     flf.seek(len(BG) * 10)
     assert flf.readline().strip() == "GNU GENERAL PUBLIC LICENSE"
     assert flf.readline().strip() == "Version 3, 29 June 2007"
