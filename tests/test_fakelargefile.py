@@ -154,3 +154,13 @@ def test_read():
     assert flf.read(1) == "j"
     assert flf.read(1) == ""
     assert flf.read(1) == ""
+
+
+def test_insert_literal():
+    flf = FakeLargeFile()
+    flf.append_literal("I came here for a good argument.")
+    flf.delete(17, 22)
+    flf.insert_literal("n", start=17)
+    flf.delete(0, 1)
+    flf.insert_literal("No you didn't; no, you", start=0)
+    assert str(flf) == "No you didn't; no, you came here for an argument."

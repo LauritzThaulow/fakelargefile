@@ -99,6 +99,16 @@ class FakeLargeFile(object):
                 seg.start for seg in altered]
             self.update_size()
 
+    def insert_literal(self, text, start=None):
+        """
+        Convenience method for inserting a string at position ``start``
+
+        If start is not given, use the current position.
+        """
+        if start is None:
+            start = self.pos
+        self.insert(LiteralSegment(start, text))
+
     def delete(self, start, stop):
         """
         Delete from start to stop and move what follows adjacent to start.
