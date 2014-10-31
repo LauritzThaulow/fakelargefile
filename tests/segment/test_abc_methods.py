@@ -29,6 +29,14 @@ def test_index_implementation():
             content[3:-2], 6, end_pos=True) == segment.stop - 2
         assert segment.index("", 4, 6) == 4
         assert segment.index("", 4, 4) == 4
+        last_byte = content[-1]
+        not_last_byte = chr((ord(last_byte) + 1) % 256)
+        try:
+            segment.index(not_last_byte, 12)
+        except ValueError:
+            assert True
+        else:
+            assert False
 
 
 def test_copy_implementation():
