@@ -140,3 +140,17 @@ def test___getitem__():
     assert flf[:] == "abcdefghijklmn"
     assert flf[::2] == "acegikm"
     assert flf[1::2] == "bdfhjln"
+
+
+def test_read():
+    flf = FakeLargeFile()
+    flf.append_literal("a")
+    flf.append_literal("bc")
+    flf.append_literal("def")
+    flf.append_literal("ghij")
+    assert flf.read(1) == "a"
+    assert flf.read(3) == "bcd"
+    assert flf.read(5) == "efghi"
+    assert flf.read(1) == "j"
+    assert flf.read(1) == ""
+    assert flf.read(1) == ""

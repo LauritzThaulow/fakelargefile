@@ -49,7 +49,12 @@ class FakeLargeFile(object):
         """
         Iterate over self.segments starting from segment containing pos.
         """
-        return islice(self.segments, self.segment_containing(self.pos), None)
+        try:
+            start = self.segment_containing(self.pos)
+        except NoContainingSegment:
+            return iter([])
+        else:
+            return islice(self.segments, start, None)
 
     def finditer(self, string, start_pos=0, end_pos=False):
         """
@@ -160,6 +165,16 @@ class FakeLargeFile(object):
         deleted = self[self.pos:pos]
         self.delete(self.pos, pos)
         return deleted
+
+    def read(self, size):
+        """
+        Read up to size bytes, starting from the current position
+
+        Behaves like file-like read methods should.
+        """
+        ret = self[self.pos:self.pos + size]
+        self.pos = self.pos + len(ret)
+        return ret
 
     def __str__(self):
         """
