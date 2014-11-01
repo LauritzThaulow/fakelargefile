@@ -155,6 +155,14 @@ def test_read():
     assert flf.read(1) == ""
 
 
+def test_readline():
+    lines = [str(x) * x + "\n" for x in range(10)]
+    flf = FakeLargeFile()
+    flf.append_literal("".join(lines))
+    for line in lines:
+        assert flf.readline() == line
+
+
 def test_insert_literal():
     flf = FakeLargeFile()
     flf.append_literal("I came here for a good argument.")
