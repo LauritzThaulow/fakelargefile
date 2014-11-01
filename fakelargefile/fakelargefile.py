@@ -190,6 +190,32 @@ class FakeLargeFile(object):
         self.delete(self.pos, pos)
         return deleted
 
+    def seek(self, offset, whence=0):
+        """
+        Seek to a certain position in the file
+
+        Implements the python file object seek functionality.
+
+        It does not specify what to do if whence is not 0, 1 or 2. This method
+        will raise a ValueError in that case.
+        """
+        if whence == 0:
+            self.pos = offset
+        elif whence == 1:
+            self.pos += offset
+        elif whence == 2:
+            self.pos = self.size + offset
+        else:
+            raise ValueError("Valid values for whence is 0, 1 or 2.")
+
+    def tell(self):
+        """
+        Return the current position in the file
+
+        Implements the python file object tell functionality.
+        """
+        return self.pos
+
     def read(self, size):
         """
         Read up to size bytes, starting from the current position

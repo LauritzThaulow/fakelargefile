@@ -133,7 +133,6 @@ def test___getitem__():
     flf.append_literal("abc")
     flf.append_literal("defgh")
     flf.append_literal("ijklmn")
-    print flf[::-1]
     assert flf[::-1] == "nmlkjihgfedcba"
     assert flf[3:1] == ""
     assert flf[1:3:-1] == ""
@@ -164,3 +163,26 @@ def test_insert_literal():
     flf.delete(0, 1)
     flf.insert_literal("No you didn't; no, you", start=0)
     assert str(flf) == "No you didn't; no, you came here for an argument."
+
+
+def test_seek():
+    flf = FakeLargeFile()
+    flf.append_literal("One, two, five!")
+    flf.seek(5)
+    assert flf.read(3) == "two"
+    flf.seek(-5, 2)
+    assert flf.read(4) == "five"
+    flf.seek(-4, 1)
+    assert flf.read(4) == "five"
+
+
+def test_tell():
+    flf = FakeLargeFile()
+    flf.append_literal(
+        "Make sure the prince doesn't leave this room "
+        "until I come and get him.")
+    assert flf.tell() == 0
+    flf.seek(5)
+    assert flf.tell() == 5
+    flf.seek(1000)
+    assert flf.tell() == 1000

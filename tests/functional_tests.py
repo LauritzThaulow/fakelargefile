@@ -57,5 +57,6 @@ def test_usage():
     fasit = (BG + BG)[BG_pos:BG_pos + 10]
     assert flf.read(10) == fasit
     flf.seek(len(BG))
-    flf.delete(len(BG))
+    pos = flf.tell()
+    flf.delete(pos, pos + len(BG))
     assert flf.readline().strip() == "GNU GENERAL PUBLIC LICENSE"
