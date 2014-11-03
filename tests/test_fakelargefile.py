@@ -182,6 +182,12 @@ def test_seek():
     assert flf.read(4) == "five"
     flf.seek(-4, 1)
     assert flf.read(4) == "five"
+    try:
+        flf.seek(0, 3)
+    except ValueError:
+        assert True
+    else:
+        assert False
 
 
 def test_tell():

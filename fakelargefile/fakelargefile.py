@@ -140,7 +140,8 @@ class FakeLargeFile(object):
 
         altered = before + after
         for segment in self.segments[last_affected + 1:]:
-            altered.append(segment.copy(start=segment.start - (stop - start)))
+            new_start = segment.start - (stop - start)
+            altered.append(segment.copy(start=new_start))
         self.segments[first_affected:] = altered
         self.segment_start[first_affected:] = [
             seg.start for seg in altered]

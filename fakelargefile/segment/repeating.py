@@ -19,7 +19,7 @@ class RepeatingSegment(AbstractSegment):
         return type(self)(self.start, stop - self.start, self.text)
 
     def slice_to_stop_from(self, start):
-        split_at = start - self.start
+        split_at = (start - self.start) % len(self.text)
         text = self.text[split_at:] + self.text[:split_at]
         return type(self)(start, self.stop - start, text)
 
@@ -36,10 +36,10 @@ class RepeatingSegment(AbstractSegment):
 
     def index(self, string, start=None, stop=None, end_pos=False):
         start, stop = self.parse_slice(start, stop, local=True)
-        length = min(stop - start, self.size + len(string))
-        in_text_start = start % self.size
+        in_text_start = start % len(self.text)
         to_add = start - in_text_start
         assert to_add + in_text_start == start
+        length = min(stop - start, len(self.text) + len(string))
         index = self.text_thrice.index(
             string, in_text_start, in_text_start + length)
         if end_pos:

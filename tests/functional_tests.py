@@ -39,24 +39,28 @@ log = logging.getLogger(__name__)
 
 
 def test_usage():
-    flf = FakeLargeFile([RepeatingSegment.example(start=0, size="10G")])
+    flf = FakeLargeFile([RepeatingSegment(start=0, size="1G", text=BG)])
     assert flf.readline().strip() == "GNU GENERAL PUBLIC LICENSE"
     deleted = flf.deleteline(count=2)
     assert flf.read(10).strip() == "Copyright"
     assert flf.readline() == (
         " (C) 2007 Free Software Foundation, Inc. <http://fsf.org/>\n")
+    pos_before_insert = flf.tell()
     flf.insert_literal(deleted)
+    assert pos_before_insert == flf.tell()
     flf.seek(len(BG) * 10)
     assert flf.readline().strip() == "GNU GENERAL PUBLIC LICENSE"
     assert flf.readline().strip() == "Version 3, 29 June 2007"
     flf.seek(0, 2)
-    fasit_end_pos = 10 * 1024 * 1024 * 1024
+    fasit_end_pos = 1 * 1024 * 1024 * 1024
     assert flf.tell() == fasit_end_pos
     flf.seek(-10, 1)
     BG_pos = (fasit_end_pos - 10) % len(BG)
     fasit = (BG + BG)[BG_pos:BG_pos + 10]
     assert flf.read(10) == fasit
-    flf.seek(len(BG))
+    flf.seek(len(BG) * 100)
+    assert flf.readline().strip() == "GNU GENERAL PUBLIC LICENSE"
+    flf.seek(len(BG) * 100)
     pos = flf.tell()
     flf.delete(pos, pos + len(BG))
     assert flf.readline().strip() == "GNU GENERAL PUBLIC LICENSE"
