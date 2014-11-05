@@ -1,7 +1,5 @@
 '''
-Created on Oct 25, 2014
-
-@author: lauritz
+A file that's large on the inside but small on the outside.
 '''
 
 
