@@ -18,10 +18,10 @@ class LiteralSegment(AbstractSegment):
         super(LiteralSegment, self).__init__(start, len(text))
         self.text = text
 
-    def slice_from_start_to(self, stop):
+    def left_part(self, stop):
         return type(self)(self.start, self.text[:stop - self.start])
 
-    def slice_to_stop_from(self, start):
+    def right_part(self, start):
         return type(self)(start, self.text[start - self.start:])
 
     @classmethod

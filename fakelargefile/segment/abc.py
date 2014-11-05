@@ -94,6 +94,7 @@ class AbstractSegment(object):
             return True
         elif self.start < start < self.stop:
             return True
+        # FIXME: start < self.start < self.stop < stop
         return False
 
     def cut(self, start, stop):
@@ -103,30 +104,36 @@ class AbstractSegment(object):
         Cuts from and including start to and not including stop.
 
         The start to stop interval has to intersect self, or a ValueError is
-        raised.
+        raised, but either or both may be beyond the boundaries of the
+        segment.
         """
         if not self.intersects(start, stop):
             raise ValueError(
                 "Cant cut from {} to {} on segment from {} to {}".format(
                     start, stop, self.start, self.stop))
-        if start <= self.start < stop < self.stop:
-            return [self[stop:]]
-        elif self.start < start < self.stop <= stop:
-            return [self[:start]]
-        elif self.start < start <= stop < self.stop:
-            return [self[:start], self[stop:]]
-        else:
-            raise ValueError(
-                "Unforseen case: does {}->{} intersect {}->{}".format(
-                    start, stop, self.start, self.stop))
+        start, stop = self.parse_slice(start, stop, clamp=True)
+        result = []
+        if self.start < start:
+            result.append(self.left_part(start))
+        if stop < self.stop:
+            result.append(self.right_part(stop))
+        return result
 
     def cut_at(self, index):
         """
         Cut self in two at the given index.
 
-        Syntactic sugar for self.cut(index, index)
+        :param int index: The index to cut at, such that
+            `self.start <= index <= self.stop`. If this does not hold, a
+            ValueError is raised.
+        :returns: A tuple (first, last), where either may be None if the cut
+            is at self.start or self.stop.
         """
-        return self.cut(index, index)
+        if not (self.start <= index <= self.stop):
+            raise ValueError(
+                "The given index must be between {} and {}, got {}".format(
+                    self.start, self.stop, index))
+        return self.left_part(index), self.right_part(index)
 
     def readline(self, pos):
         """
@@ -168,42 +175,23 @@ class AbstractSegment(object):
         return "{}(start={}, stop={})".format(
             type(self).__name__, self.start, self.stop)
 
-    def __getitem__(self, slice_):
-        """
-        Generic slicing implementation.
-
-        Implements these cases:
-
-        - slice from start to some point in the middle
-        - slice from some point in the middle to the end
-
-        Any unsupported case will raise an IndexError.
-        """
-        if slice_.start is None and self.start < slice_.stop <= self.stop:
-            return self.slice_from_start_to(slice_.stop)
-        elif self.start <= slice_.start < self.stop and slice_.stop is None:
-            return self.slice_to_stop_from(slice_.start)
-        else:
-            raise IndexError((
-                "Unsupported slice operation. "
-                "Start: {}, stop: {}, slice: {!r}").format(
-                    self.start, self.stop, slice_))
-
     @abstractmethod
-    def slice_from_start_to(self, stop):
+    def left_part(self, stop):
         """
-        Return the slice from the start of this segment to stop.
+        Return the subsegment from self.start to stop.
+
+        If stop is outside of this segment, the result is undefined.
         """
         raise NotImplementedError()
 
     @abstractmethod
-    def slice_to_stop_from(self, start):
+    def right_part(self, start):
         """
-        Return the slice from start to the end of this segment.
+        Return the subsegment from start to self.stop.
 
-        The start point of the returned segment should be such that::
+        The returned segment is not moved, i.e. it starts at `start`.
 
-            segment.slice_to_stop_from(x).start == segment.start + x
+        If start is outside of this segment, the result is undefined.
         """
         raise NotImplementedError()
 

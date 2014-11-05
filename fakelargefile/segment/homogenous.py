@@ -15,10 +15,10 @@ class HomogenousSegment(AbstractSegment):
                 "Argument char must be a single byte, not {!r}.".format(char))
         self.char = char
 
-    def slice_from_start_to(self, stop):
+    def left_part(self, stop):
         return type(self)(self.start, stop - self.start, self.char)
 
-    def slice_to_stop_from(self, start):
+    def right_part(self, start):
         return type(self)(start, self.stop - start, self.char)
 
     @classmethod

@@ -15,10 +15,10 @@ class RepeatingSegment(AbstractSegment):
         # For speedy wrapping operations
         self.text_thrice = text * 3
 
-    def slice_from_start_to(self, stop):
+    def left_part(self, stop):
         return type(self)(self.start, stop - self.start, self.text)
 
-    def slice_to_stop_from(self, start):
+    def right_part(self, start):
         split_at = (start - self.start) % len(self.text)
         text = self.text[split_at:] + self.text[:split_at]
         return type(self)(start, self.stop - start, text)

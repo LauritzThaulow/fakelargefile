@@ -160,22 +160,17 @@ def test_cut_at():
     for segment_type in segment_types:
         log.debug(segment_type)
         segment = segment_type.example(start=3, size=10)
-        segment.cut = Mock()
+        segment.left_part = Mock()
+        segment.right_part = Mock()
         segment.cut_at(5)
-        segment.cut.assert_called_once_with(5, 5)
-
-
-def test___getitem___not_covered():
-    for segment_type in segment_types:
-        log.debug(segment_type)
-        segment = segment_type.example(start=3, size=10)
-        for tpl in ((4, 9), (9, 4), (9, 4, -1), (3, 10, 2)):
-            try:
-                segment.__getitem__(slice(*tpl))
-            except IndexError:
-                assert True
-            else:
-                assert False
+        segment.left_part.assert_called_once_with(5)
+        segment.right_part.assert_called_once_with(5)
+        try:
+            segment.cut_at(2)
+        except ValueError:
+            assert True
+        else:
+            assert False
 
 
 def test_repr():
