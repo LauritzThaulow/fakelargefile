@@ -21,13 +21,20 @@ class AbstractSegment(object):
     def __init__(self, start, size):
         self._start = start
         self._size = parse_size(size)
+        self._stop = start + self._size
 
     @property
     def start(self):
+        """
+        Return the positon of the first byte of this segment.
+        """
         return self._start
 
     @property
     def size(self):
+        """
+        Return the size of this segment in bytes.
+        """
         return self._size
 
     @property
@@ -35,7 +42,7 @@ class AbstractSegment(object):
         """
         Return the positon of the byte after the last byte of this segment.
         """
-        return self.start + self.size
+        return self._stop
 
     def parse_slice(self, start, stop, local=False):
         """
