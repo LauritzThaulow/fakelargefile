@@ -67,6 +67,7 @@ class FakeLargeFile(SegmentChain):
                     return "".join(line)
                 else:
                     break
+        return "".join(line)
 
     def deleteline(self, count=1):
         """
