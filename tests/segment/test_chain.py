@@ -72,6 +72,29 @@ def test_finditer():
     assert ret == fasit
 
 
+def test_finditer_across_segments():
+    sc = SegmentChain()
+    string = "aafaffafffafffffafa"
+    chunk = ""
+    control = ""
+    for char in string:
+        if chunk == "" or char == chunk[-1]:
+            chunk += char
+        else:
+            sc.append_literal(chunk)
+            control += chunk
+            chunk = char
+    sc.append_literal(chunk)
+    control += chunk
+    assert control == string
+    assert list(sc.finditer("afa")) == [1, 16]
+    assert list(sc.finditer("fff")) == [7, 11]
+    assert list(sc.finditer("ff")) == [4, 7, 11, 13]
+    assert list(sc.finditer("f")) == [
+        2, 4, 5, 7, 8, 9, 11, 12, 13, 14, 15, 17]
+    assert list(sc.finditer("ffa", end_pos=True)) == [7, 11, 17]
+
+
 def test_insert_and_append():
     sc = SegmentChain()
     sc.insert(LS(start=0, text="a\nb"))

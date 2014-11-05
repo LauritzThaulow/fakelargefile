@@ -43,7 +43,7 @@ class HomogenousSegment(AbstractSegment):
         else:
             return start
 
-    def substring(self, start, stop):
+    def substring(self, start=None, stop=None):
         start, stop = self.parse_slice(start, stop)
         return self.char * (stop - start)
 

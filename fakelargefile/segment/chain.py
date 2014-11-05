@@ -7,6 +7,7 @@ from __future__ import absolute_import, division
 
 from bisect import bisect
 from itertools import islice
+from collections import deque
 
 from fakelargefile.errors import NoContainingSegment
 from fakelargefile.segment import LiteralSegment
@@ -64,11 +65,45 @@ class SegmentChain(object):
         Iterate over indices of occurences of string.
         """
         pos = start_pos
+        overlap_size = (len(string) - 1)
+        tail = deque()
+        bytes_in_tail = 0
         for seg in self.segment_iter(start_pos):
+            if tail:
+                left_overlap = "".join(tail)[-overlap_size:]
+                right_overlap = seg.substring(
+                    seg.start, min(seg.start + overlap_size, seg.stop))
+                overlap_string = left_overlap + right_overlap
+                overlap_pos = 0
+                while True:
+                    try:
+                        overlap_pos = overlap_string.index(string, overlap_pos)
+                    except ValueError:
+                        break
+                    else:
+                        if end_pos:
+                            overlap_pos += len(string)
+                        yield overlap_pos - len(left_overlap) + seg.start
+                        if not end_pos:
+                            overlap_pos += len(string)
             while True:
                 try:
                     pos = seg.index(string, pos, end_pos=end_pos)
                 except ValueError:
+                    # For when the search string may span several segments,
+                    # keep a record of enough of the previous segments to
+                    # search for the string.
+                    overlap_start = seg.stop - overlap_size
+                    if seg.start <= overlap_start:
+                        tail.clear()
+                        bytes_in_tail = 0
+                    else:
+                        overlap_start = seg.start
+                    tail_tip = seg.substring(overlap_start, seg.stop)
+                    tail.append(tail_tip)
+                    bytes_in_tail += len(tail_tip)
+                    while bytes_in_tail - len(tail[0]) > overlap_size:
+                        bytes_in_tail -= len(tail.popleft())
                     pos = seg.stop
                     break
                 else:
