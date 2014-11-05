@@ -82,48 +82,6 @@ def test_intersects():
         assert segment.intersects(15, 17) == False
 
 
-def test_intersects_segment():
-    for segment_type in segment_types:
-        log.debug(segment_type)
-        segment = segment_type.example(start=3, size=10)
-        segment.intersects = Mock()
-        other = Mock()
-        other.start = 8
-        other.stop = 13
-        segment.intersects_segment(other)
-        segment.intersects.assert_called_once_with(8, 13)
-
-
-def test_affected_by():
-    for segment_type in segment_types:
-        log.debug(segment_type)
-        segment = segment_type.example(start=3, size=10)
-        assert segment.affected_by(14) == False
-        assert segment.affected_by(13) == False
-        assert segment.affected_by(12) == True
-        assert segment.affected_by(4) == True
-        assert segment.affected_by(3) == True
-        assert segment.affected_by(2) == True
-        try:
-            segment.affected_by(3.1)
-        except ValueError:
-            assert True
-        else:
-            assert False
-
-
-def test_affected_by_segment():
-    for segment_type in segment_types:
-        log.debug(segment_type)
-        segment = segment_type.example(start=3, size=10)
-        segment.affected_by = Mock()
-        other = Mock()
-        other.start = 8
-        other.stop = 13
-        segment.affected_by_segment(other)
-        segment.affected_by.assert_called_once_with(8)
-
-
 def test_cut_from_start():
     for segment_type in segment_types:
         segment = segment_type.example(start=3, size=42)

@@ -50,12 +50,14 @@ class AbstractSegment(object):
 
         :param int start: If None, set to self.start.
         :param int stop: If None, set to self.stop.
-        :param bool local: If True, return as a slice relative to the start
-            of the segment.
+        :param bool local: If True, return indices relative to the start
+            of the segment, instead of the default which is relative to the
+            start of the file.
 
         A ValueError is raised if this condition does not hold::
 
             self.start <= start <= stop <= self.stop
+
         """
         if start is None:
             start = self.start
@@ -85,35 +87,6 @@ class AbstractSegment(object):
         elif self.start < start < self.stop:
             return True
         return False
-
-    def intersects_segment(self, other):
-        """
-        Convenience method for self.intersects(other.start, other.stop)
-        """
-        return self.intersects(other.start, other.stop)
-
-    def affected_by(self, index):
-        """
-        Will insertion or deletion at index affect this segment?
-
-        It is assumed that it's not a zero-length deletion we're talking
-        about.
-
-        Being affected by means that this segment will be split, sliced
-        and/or moved.
-        """
-        if not isinstance(index, int):
-            raise ValueError()
-        return index < self.stop
-
-    def affected_by_segment(self, segment):
-        """
-        Will inserting or deleting the given segment affect this segment?
-
-        Being affected by means that this segment will be split, sliced
-        and/or moved.
-        """
-        return self.affected_by(segment.start)
 
     def cut(self, start, stop):
         """
