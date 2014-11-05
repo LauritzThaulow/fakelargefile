@@ -28,7 +28,8 @@ class FakeLargeFile(object):
     Here's a table of the computational complexity of various FakeLargeFile
     operations. Sibling methods like read() and readline() have the same
     complexity. N is the *count* of segments after the start of an insert or
-    delete, B is the number of bytes an operation works on.
+    delete, B is the number of bytes an operation works on, M is the total
+    number of segments.
 
     Method      Big O
     ======      ======
