@@ -45,9 +45,9 @@ def test_usage():
     assert flf.read(10).strip() == "Copyright"
     assert flf.readline() == (
         " (C) 2007 Free Software Foundation, Inc. <http://fsf.org/>\n")
-    pos_before_insert = flf.tell()
-    flf.insert_literal(deleted)
-    assert pos_before_insert == flf.tell()
+    insert_at_pos = flf.tell()
+    flf.insert_literal(insert_at_pos, deleted)
+    assert insert_at_pos == flf.tell()
     flf.seek(len(BG) * 10)
     assert flf.readline().strip() == "GNU GENERAL PUBLIC LICENSE"
     assert flf.readline().strip() == "Version 3, 29 June 2007"
