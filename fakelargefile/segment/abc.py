@@ -94,7 +94,8 @@ class AbstractSegment(object):
             return True
         elif self.start < start < self.stop:
             return True
-        # FIXME: start < self.start < self.stop < stop
+        elif start < self.start < self.stop < stop:
+            return True
         return False
 
     def cut(self, start, stop):

@@ -80,6 +80,7 @@ def test_intersects():
         assert segment.intersects(12, 14) == True
         assert segment.intersects(13, 14) == False
         assert segment.intersects(15, 17) == False
+        assert segment.intersects(0, 100) == True
 
 
 def test_cut_from_start():
