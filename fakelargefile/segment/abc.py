@@ -44,7 +44,7 @@ class AbstractSegment(object):
         """
         return self._stop
 
-    def parse_slice(self, start, stop, local=False):
+    def parse_slice(self, start, stop, local=False, clamp=False):
         """
         Convert start and stop slice attributes to actual indices.
 
@@ -53,10 +53,10 @@ class AbstractSegment(object):
         :param bool local: If True, return indices relative to the start
             of the segment, instead of the default which is relative to the
             start of the file.
-
-        A ValueError is raised if this condition does not hold::
-
-            self.start <= start <= stop <= self.stop
+        :param bool clamp: If False, which is the default, a ValueError is
+            raised for out of bounds indices. If True, the closest valid
+            value is returned.
+        :returns: A 2-tuple (start, stop) of indices.
 
         """
         if start is None:
@@ -64,10 +64,18 @@ class AbstractSegment(object):
         if stop is None:
             stop = self.stop
         if not (self.start <= start <= stop <= self.stop):
-            raise ValueError((
-                "Arguments start={} and stop={} do not fulfill the "
-                "constraint {} == self.start <= start <= stop <= self.stop "
-                "== {}").format(start, stop, self.start, self.stop))
+            if clamp:
+                if stop < start:
+                    raise ValueError(
+                        "The start pos must be before the stop pos.")
+                start = max(self.start, start)
+                stop = min(self.stop, stop)
+            else:
+                raise ValueError((
+                    "Arguments start={} and stop={} do not fulfill these "
+                    "constraint:\n {} == self.start <= start <= stop <= "
+                    "self.stop == {}").format(
+                        start, stop, self.start, self.stop))
         if local:
             start -= self.start
             stop -= self.start
