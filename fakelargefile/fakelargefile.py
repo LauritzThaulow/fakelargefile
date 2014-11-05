@@ -15,6 +15,41 @@ from fakelargefile.segment import LiteralSegment
 
 
 class FakeLargeFile(object):
+    """
+    A FakeLargeFile can mimic a very very large file.
+
+    It does so by keeping track of segments of bytes. Each segment may be
+    arbitrary large and contain explicit, procedurally generated or repeating
+    content.
+
+    The segments of a FakeLargeFile are always contiguous from the first
+    to the last, and the first one always starts at 0.
+
+    Here's a table of the computational complexity of various FakeLargeFile
+    operations. Sibling methods like read() and readline() have the same
+    complexity. N is the *count* of segments after the start of an insert or
+    delete, B is the number of bytes an operation works on.
+
+    Method      Big O
+    ======      ======
+    seek()      O(1)
+    tell()      O(1)
+    read()      O(B)
+    append()    O(1)
+    insert()    O(N)
+    delete()    O(N)
+    write()     O(B)
+
+    This means that FakeLargeFile is capable of feats that are very hard to
+    do with normal files:
+
+    - quickly rearranging, moving, inserting and deleting arbitrarily large
+      segments of data
+
+    - creating files whose non-null content is much larger than the
+      available storage space
+
+    """
     def __init__(self, segments=None):
         if segments is None:
             segments = []
@@ -242,7 +277,7 @@ class FakeLargeFile(object):
 
         The entire requested slice will be returned as a string. Keep memory
         consumption in mind! This method will consume memory equivalent to
-        twice the size of the returned string.
+        at least twice the size of the returned string.
 
         Border conditions are handled in the same way as when slicing a
         regular string.
