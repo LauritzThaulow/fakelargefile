@@ -5,12 +5,9 @@ A file that's large on the inside but small on the outside.
 
 from __future__ import absolute_import, division
 
-from bisect import bisect
-from itertools import islice
-
 from fakelargefile.errors import NoContainingSegment
-from fakelargefile.segment import LiteralSegment
 from fakelargefile.segment.chain import SegmentChain
+from fakelargefile.segment.literal import LiteralSegment
 
 
 class FakeLargeFile(SegmentChain):
@@ -118,3 +115,15 @@ class FakeLargeFile(SegmentChain):
         ret = self[self.pos:self.pos + size]
         self.pos = self.pos + len(ret)
         return ret
+
+    def write(self, string):
+        """
+        Write the string to the file at the current position.
+
+        Any existing bytes will be overwritten.
+        """
+        if self.pos >= self.size:
+            self.insert_literal(self.pos, string)
+        else:
+            segment = LiteralSegment(self.pos, string)
+            self.overwrite(segment)

@@ -186,14 +186,19 @@ class SegmentChain(object):
         """
         self.insert(LiteralSegment(start, text))
 
-    def delete(self, start, stop):
+    def _delete(self, start, stop):
         """
-        Delete from start to stop and move what follows adjacent to start.
+        Internal partial delete method that does just the deleting.
+
+        Internal because it breaks the "rule" of there never being any gaps
+        between the segments. This rule breaking has to be temporary. It's up
+        to the calling method to fix it, probably by filling the hole with
+        something else.
         """
         try:
             first_affected = self.segment_containing(start)
         except NoContainingSegment:
-            return
+            return len(self.segments), len(self.segments), [], []
         else:
             segment = self.segments[first_affected]
             if segment.start == start:
@@ -212,16 +217,41 @@ class SegmentChain(object):
                 after = []
                 last_affected -= 1
             else:
-                after = [segment.right_part(stop).copy(start=start)]
+                after = [segment.right_part(stop)]
 
-        altered = before + after
-        for segment in self.segments[last_affected + 1:]:
-            new_start = segment.start - (stop - start)
-            altered.append(segment.copy(start=new_start))
-        self.segments[first_affected:] = altered
-        self.segment_start[first_affected:] = [
-            seg.start for seg in altered]
+        return first_affected, last_affected + 1, before, after
+
+    def delete(self, start, stop):
+        """
+        Delete from start to stop.
+
+        :param int start: The position at which to start deleting
+        :param int stop: The position after the last byte to delete
+
+        """
+        ret = self[start:stop]
+        start_idx, stop_idx, before, after = self._delete(start, stop)
+        replacement = before[:]
+        if after:
+            replacement.append(after[0].copy(start=start))
+        for seg in self.segments[stop_idx:]:
+            replacement.append(seg.copy(start=seg.start - (stop - start)))
+        self.segments[start_idx:] = replacement
+        self.segment_start[start_idx:] = [
+            seg.start for seg in replacement]
         self.update_size()
+        return ret
+
+    def overwrite(self, segment):
+        """
+        Overwrite any existing data with the given segment.
+        """
+        start_idx, stop_idx, before, after = self._delete(
+            segment.start, segment.stop)
+        replacement = before + [segment] + after
+        self.segments[start_idx:stop_idx] = replacement
+        self.segment_start[start_idx:stop_idx] = [
+            seg.start for seg in replacement]
 
     def append(self, segment):
         """

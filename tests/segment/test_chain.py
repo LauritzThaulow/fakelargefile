@@ -157,7 +157,7 @@ def test_delete():
     sc.append_literal(" hijk.")
     sc.delete(11, 16)
     sc.delete(8, 14)
-    sc.delete(2, 4)
+    assert sc.delete(2, 4) == "cd"
     assert str(sc) == "ab hij"
 
 

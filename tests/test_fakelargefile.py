@@ -29,6 +29,21 @@ def test_read():
     assert flf.read(1) == ""
 
 
+def test_write():
+    flf = FakeLargeFile()
+    flf.append_literal("asdf asdf asdf")
+    flf.append_literal("qwerty")
+    flf.seek(2)
+    flf.write(" ")
+    flf.seek(4)
+    flf.write("e")
+    flf.seek(7)
+    flf.write("ible as h")
+    flf.seek(18)
+    flf.write(" dreams.")
+    assert str(flf) == "as feasible as her dreams."
+
+
 def test_readline():
     lines = [str(x) * x + "\n" for x in range(10)]
     flf = FakeLargeFile()
