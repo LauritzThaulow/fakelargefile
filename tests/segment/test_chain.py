@@ -18,13 +18,32 @@ def test___init__():
     segs = []
     for i in range(3):
         seg = Mock()
-        seg.start = i + 5
+        seg.start = i * 3
+        seg.stop = i * 3 + 3
         segs.append(seg)
     sc = SegmentChain(segs)
     assert sc.segments == segs
-    assert sc.segment_start == list(range(5, 8))
+    assert sc.segment_start == [0, 3, 6]
     sc = SegmentChain()
     assert sc.segments == sc.segment_start == []
+
+
+def test___init___fill_gaps():
+    sc = SegmentChain([LS(1, "a"), LS(4, "a"), LS(10, "aa")])
+    assert str(sc) == " a  a     aa"
+    try:
+        SegmentChain([LS(1, "a")], fill_gaps=False)
+    except ValueError:
+        assert True
+    else:
+        assert False
+    sc = SegmentChain([LS(0, "a")], fill_gaps=False)
+    try:
+        sc.insert(LS(2, "a"))
+    except ValueError:
+        assert True
+    else:
+        assert False
 
 
 def test_segment_containing():

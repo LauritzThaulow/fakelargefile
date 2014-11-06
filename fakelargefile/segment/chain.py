@@ -10,7 +10,7 @@ from itertools import islice
 from collections import deque
 
 from fakelargefile.errors import NoContainingSegment
-from fakelargefile.segment import LiteralSegment
+from fakelargefile.segment import LiteralSegment, RepeatingSegment
 
 
 class SegmentChain(object):
@@ -20,12 +20,23 @@ class SegmentChain(object):
     The segments are always contiguous from the first to the last, and the
     first one always starts at 0.
     """
-    def __init__(self, segments=None):
+    def __init__(self, segments=None, fill_gaps=" "):
+        """
+        Initialize a SegmentChain.
+
+        :param list segments: A list of instances implementing the Segment
+            interface.
+        :param str fill_gaps: If there are gaps between the segments, on init
+            or by later insertion, fill them with RepeatingSegment instances
+            using the given string. If the fill_gaps is None or some other
+            value that evaluates to False, a ValueError will be raised
+            instead if a gap is found.
+
+        """
         if segments is None:
             segments = []
-        self.segments = segments
-        self.segment_start = [seg.start for seg in segments]
-        self.update_size()
+        self.fill_gaps = fill_gaps
+        self.init_segments(segments)
 
     def update_size(self):
         """
@@ -35,6 +46,35 @@ class SegmentChain(object):
             self.size = self.segments[-1].stop
         else:
             self.size = 0
+
+    def fill_gap(self, start, stop):
+        """
+        Return a RepeatingSegment instance which fills the given gap.
+
+        Uses the string self.fill_gaps as repeating pattern, except if it
+        is a value which evaluates to False, in which case a ValueError will
+        be raised instead.
+        """
+        if self.fill_gaps:
+            return RepeatingSegment(start, stop - start, self.fill_gaps)
+        else:
+            raise ValueError("That segment is not contiguous with the rest.")
+
+    def init_segments(self, segments):
+        """
+        If the segments are not contiguous starting from 0, raise ValueError.
+        """
+        last_stop = 0
+        self.segments = []
+        self.segment_start = []
+        for seg in segments:
+            if seg.start != last_stop:
+                self.segments.append(self.fill_gap(last_stop, seg.start))
+                self.segment_start.append(last_stop)
+            last_stop = seg.stop
+            self.segments.append(seg)
+            self.segment_start.append(seg.start)
+        self.update_size()
 
     def segment_containing(self, pos):
         """
@@ -118,8 +158,12 @@ class SegmentChain(object):
         try:
             first_affected = self.segment_containing(segment.start)
         except NoContainingSegment:
-            self.segments.append(segment)
-            self.segment_start.append(segment.start)
+            to_append = []
+            if self.size < segment.start:
+                to_append.append(self.fill_gap(self.size, segment.start))
+            to_append.append(segment)
+            self.segments.extend(to_append)
+            self.segment_start.extend([x.start for x in to_append])
             self.update_size()
         else:
             first_affected_segment = self.segments[first_affected]
