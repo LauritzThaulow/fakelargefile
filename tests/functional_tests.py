@@ -64,3 +64,34 @@ def test_usage():
     pos = flf.tell()
     flf.delete(pos, pos + len(BG))
     assert flf.readline().strip() == "GNU GENERAL PUBLIC LICENSE"
+
+
+def test_remaining_file_like_object_methods():
+    flf = FakeLargeFile()
+    pos = 1000000000
+    flf.seek(pos)
+    flf.write("hi\nhello\ngood day")
+    flf.flush()
+    flf.seek(pos)
+    assert flf.readline() == "hi\n"
+    assert flf.next() == "hello\n"
+    assert flf.read(1) == "g"
+    assert flf.readline(1) == "o"
+    assert flf.read() == "od day"
+    try:
+        flf.next()
+    except StopIteration:
+        assert True
+    else:
+        assert False
+    flf.seek(pos)
+    flf.truncate(1001)
+    assert flf.tell() == pos
+    flf.seek(0, 2)
+    assert flf.tell() == 1001
+    flf.writelines(["a\n", "b", "c\n"])
+    flf.seek(1001)
+    assert list(flf) == ["a\n", "bc\n"]
+    assert flf.softspace == 0
+    flf.softspace = 1
+    assert flf.softspace == 1
