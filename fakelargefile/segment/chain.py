@@ -2,6 +2,8 @@
 A chain of segment instances.
 '''
 
+from __future__ import absolute_import, division
+
 COPYING = """\
     Copyright 2014 Lauritz Vesteraas Thaulow
 
@@ -19,9 +21,6 @@ COPYING = """\
     You should have received a copy of the GNU General Affero Public License
     along with FakeLargeFile.  If not, see <http://www.gnu.org/licenses/>.
     """
-
-
-from __future__ import absolute_import, division
 
 from bisect import bisect
 from itertools import islice

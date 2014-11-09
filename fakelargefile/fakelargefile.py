@@ -2,6 +2,8 @@
 A file that's large on the inside but small on the outside.
 '''
 
+from __future__ import absolute_import, division
+
 COPYING = """\
     Copyright 2014 Lauritz Vesteraas Thaulow
 
@@ -19,9 +21,6 @@ COPYING = """\
     You should have received a copy of the GNU General Affero Public License
     along with FakeLargeFile.  If not, see <http://www.gnu.org/licenses/>.
     """
-
-
-from __future__ import absolute_import, division
 
 from fakelargefile.segment.chain import SegmentChain
 from fakelargefile.segment.literal import LiteralSegment

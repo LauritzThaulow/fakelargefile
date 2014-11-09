@@ -2,8 +2,12 @@
 The abstract base class for segment types
 '''
 
+from __future__ import division, absolute_import
+
 COPYING = """\
-    This file is part of FakeLargeFile.
+    Copyright 2014 Lauritz Vesteraas Thaulow
+
+    This file is part of the FakeLargeFile python package.
 
     FakeLargeFile is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License version 3,
@@ -17,9 +21,6 @@ COPYING = """\
     You should have received a copy of the GNU General Affero Public License
     along with FakeLargeFile.  If not, see <http://www.gnu.org/licenses/>.
     """
-
-
-from __future__ import division, absolute_import
 
 from abc import ABCMeta, abstractmethod
 
