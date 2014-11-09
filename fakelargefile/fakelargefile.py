@@ -127,3 +127,9 @@ class FakeLargeFile(SegmentChain):
         else:
             segment = LiteralSegment(self.pos, string)
             self.overwrite(segment)
+
+    def flush(self):
+        """
+        Do nothing, since there is no cache.
+        """
+        pass

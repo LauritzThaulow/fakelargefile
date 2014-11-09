@@ -80,3 +80,9 @@ def test_tell():
     assert flf.tell() == 5
     flf.seek(1000)
     assert flf.tell() == 1000
+
+
+def test_flush():
+    flf = FakeLargeFile()
+    # No-op, but has to exist.
+    flf.flush()
