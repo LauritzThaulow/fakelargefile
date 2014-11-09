@@ -29,7 +29,7 @@ def test___init__():
 
 
 def test___init___fill_gaps():
-    sc = SegmentChain([LS(1, "a"), LS(4, "a"), LS(10, "aa")])
+    sc = SegmentChain([LS(1, "a"), LS(4, "a"), LS(10, "aa")], fill_gaps=" ")
     assert str(sc) == " a  a     aa"
     try:
         SegmentChain([LS(1, "a")], fill_gaps=False)
@@ -182,3 +182,15 @@ def test_insert_literal():
     sc.delete(0, 1)
     sc.insert_literal(0, "No you didn't; no, you")
     assert str(sc) == "No you didn't; no, you came here for an argument."
+
+
+def test_overwrite():
+    sc = SegmentChain()
+    sc.append_literal("One, two, five!")
+    sc.overwrite(LiteralSegment(10, "three, Sir!"))
+    assert str(sc) == "One, two, three, Sir!"
+    sc.overwrite(LiteralSegment(3, " does not simply!"))
+    assert str(sc) == "One does not simply!!"
+    sc.overwrite(LiteralSegment(23, "!"))
+    print repr(str(sc))
+    assert str(sc) == "One does not simply!!\x00\x00!"

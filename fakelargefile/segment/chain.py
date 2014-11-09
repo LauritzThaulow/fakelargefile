@@ -20,7 +20,7 @@ class SegmentChain(object):
     The segments are always contiguous from the first to the last, and the
     first one always starts at 0.
     """
-    def __init__(self, segments=None, fill_gaps=" "):
+    def __init__(self, segments=None, fill_gaps="\x00"):
         """
         Initialize a SegmentChain.
 
@@ -246,12 +246,18 @@ class SegmentChain(object):
         """
         Overwrite any existing data with the given segment.
         """
-        start_idx, stop_idx, before, after = self._delete(
-            segment.start, segment.stop)
-        replacement = before + [segment] + after
-        self.segments[start_idx:stop_idx] = replacement
-        self.segment_start[start_idx:stop_idx] = [
-            seg.start for seg in replacement]
+        if segment.start < self.size:
+            start_idx, stop_idx, before, after = self._delete(
+                segment.start, segment.stop)
+            replacement = before + [segment] + after
+            self.segments[start_idx:stop_idx] = replacement
+            self.segment_start[start_idx:stop_idx] = [
+                seg.start for seg in replacement]
+            self.update_size()
+        else:
+            if self.size < segment.start:
+                self.append(self.fill_gap(self.size, segment.start))
+            self.append(segment)
 
     def append(self, segment):
         """
