@@ -51,6 +51,12 @@ def test_readline():
     for line in lines:
         assert flf.readline() == line
     assert flf.readline() == "abc"
+    assert flf.readline() == ""
+    flf.seek(0)
+    assert flf.readline(0) == ""
+    assert flf.readline(1) == "\n"
+    assert flf.readline(1) == "1"
+    assert flf.tell() == 2
 
 
 def test_seek():

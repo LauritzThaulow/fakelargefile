@@ -51,15 +51,25 @@ class FakeLargeFile(SegmentChain):
         super(FakeLargeFile, self).__init__(segments)
         self.pos = 0
 
-    def readline(self):
+    def readline(self, size=None):
         """
         Read up to and including the next newline character, and return it.
+
+        :param int size: Maximum number of bytes to read. If set to None,
+            which is the default, there is no limit.
+        :returns: A string `s`, possibly including a newline, such that
+            `len(s) >= size` when size is given.
+
         """
         line = []
+        start_pos = self.pos
         for seg in self.segment_iter(self.pos):
             while True:
                 line.append(seg.readline(self.pos))
                 self.pos += len(line[-1])
+                if size is not None and self.pos - start_pos >= size:
+                    self.pos -= (self.pos - start_pos) - size
+                    return "".join(line)[:size]
                 if "\n" in line[-1]:
                     return "".join(line)
                 else:
@@ -106,14 +116,20 @@ class FakeLargeFile(SegmentChain):
         """
         return self.pos
 
-    def read(self, size):
+    def read(self, size=None):
         """
         Read up to size bytes, starting from the current position
 
-        Behaves like file-like read methods should.
+        :param int size: The number of bytes to read. If set to None, which
+            is the default, read until the end of the file.
+
         """
-        ret = self[self.pos:self.pos + size]
-        self.pos = self.pos + len(ret)
+        if size is None:
+            ret = self[self.pos:]
+            self.pos = self.size
+        else:
+            ret = self[self.pos:self.pos + size]
+            self.pos = self.pos + len(ret)
         return ret
 
     def write(self, string):
