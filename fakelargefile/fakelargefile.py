@@ -51,6 +51,7 @@ class FakeLargeFile(SegmentChain):
     def __init__(self, segments=None):
         super(FakeLargeFile, self).__init__(segments, "\x00")
         self.pos = 0
+        self.softspace = 0
 
     def readline(self, size=None):
         """
