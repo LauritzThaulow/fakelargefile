@@ -86,3 +86,18 @@ def test_flush():
     flf = FakeLargeFile()
     # No-op, but has to exist.
     flf.flush()
+
+
+def test_next():
+    flf = FakeLargeFile()
+    flf.append_literal("abc\ndef\nghijklm\n")
+    assert flf.next() == "abc\n"
+    flf.seek(2, 1)
+    assert flf.next() == "f\n"
+    assert flf.next() == "ghijklm\n"
+    try:
+        flf.next()
+    except StopIteration:
+        assert True
+    else:
+        assert False

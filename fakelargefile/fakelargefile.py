@@ -133,3 +133,13 @@ class FakeLargeFile(SegmentChain):
         Do nothing, since there is no cache.
         """
         pass
+
+    def next(self):
+        """
+        Return the next line, if at EOF, raise StopIteration
+        """
+        line = self.readline()
+        if line:
+            return line
+        else:
+            raise StopIteration
