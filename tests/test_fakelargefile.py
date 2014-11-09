@@ -107,3 +107,22 @@ def test_next():
         assert True
     else:
         assert False
+
+
+def test_truncate():
+    flf = FakeLargeFile()
+    flf.append_literal("An Ex Parrot")
+    flf.seek(0, 2)
+    flf.truncate()
+    assert str(flf) == "An Ex Parrot"
+    flf.truncate(5)
+    assert str(flf) == "An Ex"
+    flf.write("still here")
+    assert str(flf) == "An Ex" + "\x00" * 7 + "still here"
+    flf.seek(5)
+    flf.truncate()
+    flf.write("ample")
+    assert str(flf) == "An Example"
+    flf.truncate(15)
+    assert str(flf) == "An Example" + "\x00" * 5
+

@@ -8,6 +8,7 @@ from __future__ import absolute_import, division
 from fakelargefile.errors import NoContainingSegment
 from fakelargefile.segment.chain import SegmentChain
 from fakelargefile.segment.literal import LiteralSegment
+from fakelargefile.segment.repeating import RepeatingSegment
 
 
 class FakeLargeFile(SegmentChain):
@@ -48,7 +49,7 @@ class FakeLargeFile(SegmentChain):
 
     """
     def __init__(self, segments=None):
-        super(FakeLargeFile, self).__init__(segments)
+        super(FakeLargeFile, self).__init__(segments, "\x00")
         self.pos = 0
 
     def readline(self, size=None):
@@ -159,3 +160,19 @@ class FakeLargeFile(SegmentChain):
             return line
         else:
             raise StopIteration
+
+    def truncate(self, size=None):
+        """
+        Make the file this large by adding null bytes or deleting the end
+
+        If size is not given, use the current position.
+
+        If size is given, the current position is unchanged after the
+        operation, even if it is then past the end of the file.
+        """
+        if size is None:
+            size = self.pos
+        if size > self.size:
+            self.append(RepeatingSegment(self.size, size - self.size, "\x00"))
+        else:
+            self.delete(size, self.size)
