@@ -40,9 +40,11 @@ class FakeLargeFile(SegmentChain):
 
     Here's a table of the computational complexity of various FakeLargeFile
     operations. Sibling methods like read() and readline() have the same
-    complexity. N is the *count* of segments after the start of an insert or
-    delete, B is the number of bytes an operation works on, M is the total
-    number of segments.
+    complexity.
+
+    - N is the *count* of segments following the start of an insert or delete
+    - B is the number of bytes an operation works on
+    - M is the total number of segments.
 
     Method      Big O
     ======      ======
@@ -53,6 +55,7 @@ class FakeLargeFile(SegmentChain):
     insert()    O(N)
     delete()    O(N)
     write()     O(B)
+    truncate()  O(1)
 
     This means that FakeLargeFile is capable of feats that are very hard to
     do with normal files:

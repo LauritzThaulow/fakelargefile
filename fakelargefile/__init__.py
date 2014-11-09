@@ -26,3 +26,7 @@ from fakelargefile.errors import NotFoundError, NoContainingSegment
 from fakelargefile.fakelargefile import FakeLargeFile
 from fakelargefile.segment import (
     LiteralSegment, RepeatingSegment, HomogenousSegment)
+
+__all__ = [
+    "FakeLargeFile", "NoContainingSegment", "NotFoundError", "LiteralSegment",
+    "RepeatingSegment", "HomogenousSegment"]

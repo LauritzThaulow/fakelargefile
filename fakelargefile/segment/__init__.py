@@ -3,7 +3,9 @@ A segment is an interval of bytes of a FakeLargeFile.
 '''
 
 COPYING = """\
-    This file is part of FakeLargeFile.
+    Copyright 2014 Lauritz Vesteraas Thaulow
+
+    This file is part of the FakeLargeFile python package.
 
     FakeLargeFile is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License version 3,
