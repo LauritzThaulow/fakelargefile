@@ -151,6 +151,12 @@ class FakeLargeFile(SegmentChain):
         """
         pass
 
+    def __iter__(self):
+        """
+        Return an iterator for this object.
+        """
+        return self
+
     def next(self):
         """
         Return the next line, if at EOF, raise StopIteration
