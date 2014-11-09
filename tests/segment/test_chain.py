@@ -132,10 +132,10 @@ def test_finditer_across_segments():
 
 def test_insert_and_append():
     sc = SegmentChain()
-    sc.insert(LS(start=0, text="a\nb"))
-    sc.append(LS(start=3, text="\nc\n"))
+    sc.insert(LS(start=0, string="a\nb"))
+    sc.append(LS(start=3, string="\nc\n"))
     assert str(sc) == "a\nb\nc\n"
-    sc.insert(LS(start=1, text="iaiai, caramba!"))
+    sc.insert(LS(start=1, string="iaiai, caramba!"))
     assert str(sc) == "aiaiai, caramba!\nb\nc\n"
 
 
@@ -150,7 +150,7 @@ def test_append_and___str__():
 
 
 def test_append_literal():
-    test_text = """\
+    test_string = """\
 Liptauer?
 No.
 Lancashire?
@@ -160,11 +160,11 @@ No.
 Danish Blue?
 No.
 """
-    lines = [x + "\n" for x in test_text.split("\n") if x]
+    lines = [x + "\n" for x in test_string.split("\n") if x]
     sc = SegmentChain()
     for line in lines:
         sc.append_literal(line)
-    assert str(sc) == test_text
+    assert str(sc) == test_string
 
 
 def test_delete():

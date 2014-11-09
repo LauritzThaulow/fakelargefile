@@ -55,7 +55,7 @@ log = logging.getLogger(__name__)
 
 
 def test_usage():
-    flf = FakeLargeFile([RepeatingSegment(start=0, size="1G", text=BG)])
+    flf = FakeLargeFile([RepeatingSegment(start=0, size="1G", string=BG)])
     assert flf.readline().strip() == "GNU GENERAL PUBLIC LICENSE"
     deleted = flf.deleteline(count=2)
     assert flf.read(10).strip() == "Copyright"

@@ -197,11 +197,11 @@ class SegmentChain(object):
                 seg.start for seg in altered]
             self.update_size()
 
-    def insert_literal(self, start, text):
+    def insert_literal(self, start, string):
         """
         Convenience method for inserting a string at position ``start``
         """
-        self.insert(LiteralSegment(start, text))
+        self.insert(LiteralSegment(start, string))
 
     def _delete(self, start, stop):
         """
@@ -284,11 +284,11 @@ class SegmentChain(object):
         self.segment_start.append(self.size)
         self.update_size()
 
-    def append_literal(self, text):
+    def append_literal(self, string):
         """
-        Append a LiteralSegment with the given text
+        Append a LiteralSegment with the given string
         """
-        self.segments.append(LiteralSegment(self.size, text))
+        self.segments.append(LiteralSegment(self.size, string))
         self.segment_start.append(self.size)
         self.update_size()
 

@@ -235,9 +235,9 @@ class AbstractSegment(object):
     @abstractmethod
     def index(self, string, start=None, stop=None, end_pos=False):
         """
-        Return the index of the next occurence of text.
+        Return the index of the next occurence of string.
 
-        :param str string: The text to search for
+        :param str string: The string to search for
         :param int start: The index to start at, self.start by default.
         :param int stop: The index at which to stop searching, self.stop by
             default.

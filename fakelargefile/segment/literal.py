@@ -32,15 +32,15 @@ from fakelargefile.tools import parse_size
 
 @register_segment
 class LiteralSegment(AbstractSegment):
-    def __init__(self, start, text):
-        super(LiteralSegment, self).__init__(start, len(text))
-        self.text = text
+    def __init__(self, start, string):
+        super(LiteralSegment, self).__init__(start, len(string))
+        self.string = string
 
     def left_part(self, stop):
-        return type(self)(self.start, self.text[:stop - self.start])
+        return type(self)(self.start, self.string[:stop - self.start])
 
     def right_part(self, start):
-        return type(self)(start, self.text[start - self.start:])
+        return type(self)(start, self.string[start - self.start:])
 
     @classmethod
     def example(cls, start, size):
@@ -53,18 +53,18 @@ class LiteralSegment(AbstractSegment):
     def copy(self, start=None):
         if start is None:
             start = self.start
-        return type(self)(start, self.text)
+        return type(self)(start, self.string)
 
     def index(self, string, start=None, stop=None, end_pos=False):
         local_start, local_stop = self.parse_slice(start, stop, local=True)
-        index = self.text.index(string, local_start, local_stop)
+        index = self.string.index(string, local_start, local_stop)
         if end_pos:
             index += len(string)
         return self.start + index
 
     def substring(self, start, stop):
         local_start, local_stop = self.parse_slice(start, stop, local=True)
-        return self.text[local_start:local_stop]
+        return self.string[local_start:local_stop]
 
     def __str__(self):
-        return self.text
+        return self.string
