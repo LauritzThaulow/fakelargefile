@@ -182,3 +182,13 @@ class FakeLargeFile(SegmentChain):
             self.append(RepeatingSegment(self.size, size - self.size, "\x00"))
         else:
             self.delete(size, self.size)
+
+    def writelines(self, sequence):
+        """
+        Write the sequence of strings to the file
+
+        Does not add newlines to each string in sequence.
+        """
+        lines = "".join(sequence)
+        self.overwrite(LiteralSegment(self.pos, lines))
+        self.pos += len(lines)

@@ -126,3 +126,10 @@ def test_truncate():
     flf.truncate(15)
     assert str(flf) == "An Example" + "\x00" * 5
 
+
+def test_writelines():
+    flf = FakeLargeFile()
+    test_lines = ["here's\n", "some\n", "lines", "to\n", "write\n"]
+    flf.writelines(test_lines)
+    assert flf.tell() == sum(map(len, test_lines))
+    assert str(flf) == "here's\nsome\nlinesto\nwrite\n"
