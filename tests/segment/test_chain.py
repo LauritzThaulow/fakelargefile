@@ -130,6 +130,26 @@ def test_finditer_across_segments():
     assert list(sc.finditer("ffa", end_pos=True)) == [7, 11, 17]
 
 
+def test_index():
+    sc = SegmentChain()
+    sc.insert_literal(0, "There, it moved!")
+    assert sc.index(" ", 0) == 6
+    assert sc.index(" ", 9) == 9
+    try:
+        sc.index(" ", 10)
+    except ValueError:
+        assert True
+    else:
+        assert False
+    try:
+        sc.index(" ", 0, 6)
+    except ValueError:
+        assert True
+    else:
+        assert False
+    assert sc.index(" ", 0, 7, end_pos=True) == 7
+
+
 def test_insert_and_append():
     sc = SegmentChain()
     sc.insert(LS(start=0, string="a\nb"))

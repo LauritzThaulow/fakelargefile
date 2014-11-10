@@ -165,6 +165,30 @@ class SegmentChain(object):
                     if not end_pos:
                         pos += len(string)
 
+    def index(self, string, start=None, stop=None, end_pos=False):
+        """
+        Return index of the given string, raise ValueError if not found.
+
+        :param str string: The string to find the next index of.
+        :param int start: The positon at which to start searching, or None
+            to start at the beginning.
+        :param int stop: The positon at which to stop searching, or None to
+            stop at the end.
+        :param bool end_pos: If given, return the position following the end
+            of the string, instead of the position of the start of the string.
+        """
+        # TODO: add stop argument to finditer
+        if stop is None:
+            stop = self.size
+        for index in self.finditer(string, start):
+            if stop < index + len(string):
+                break
+            if end_pos:
+                return index + len(string)
+            else:
+                return index
+        raise ValueError()
+
     def insert(self, segment):
         """
         Insert the segment, shift following bytes to the right.
