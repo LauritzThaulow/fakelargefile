@@ -134,6 +134,13 @@ def test_finditer_across_segments():
     assert list(sc.finditer("ffa", end_pos=True)) == [7, 11, 17]
 
 
+def test_finditer_overlap_bug():
+    sc = SegmentChain()
+    sc.append_literal("a")
+    sc.append_literal("aa")
+    assert list(sc.finditer("aa")) == [0]
+
+
 def test_index():
     sc = SegmentChain()
     sc.insert_literal(0, "There, it moved!")

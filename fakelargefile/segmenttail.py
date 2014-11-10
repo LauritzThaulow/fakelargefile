@@ -40,6 +40,7 @@ class OverlapSearcher(object):
         self.string = string
         self.overlap_size = len(string) - 1
         self.clear()
+        self.pos = None
 
     def clear(self):
         """
@@ -89,6 +90,7 @@ class OverlapSearcher(object):
         if stop <= next_segment.start:
             raise ValueError(
                 "The stop argument should be larger than next_segment.start.")
+        self.pos = next_segment.start
         left_overlap = "".join(map(str, self.segments))[-self.overlap_size:]
         max_right_overlap = next_segment.start + self.overlap_size
         right_overlap = next_segment.substring(
@@ -103,6 +105,7 @@ class OverlapSearcher(object):
                 break
             else:
                 pos = overlap_pos - len(left_overlap) + next_segment.start
+                self.pos = pos + len(self.string)
                 if end_pos:
                     pos += len(self.string)
                 yield pos

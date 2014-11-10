@@ -138,8 +138,8 @@ class SegmentChain(object):
             # the search string is split across segments
             for index in overlap.index_iter(seg, stop, end_pos):
                 yield index
-            # TODO: write test for and fix "a|aa".finditer("aa") case, which
-            # will return overlapping matches but shouldn't
+            if pos != start:
+                pos = overlap.pos
             while True:
                 try:
                     pos = seg.index(string, pos, stop, end_pos=end_pos)
