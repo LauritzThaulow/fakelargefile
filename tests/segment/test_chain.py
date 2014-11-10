@@ -199,10 +199,36 @@ def test_delete():
     sc.delete(8, 14)
     assert sc.delete_and_return(2, 4) == "cd"
     assert str(sc) == "ab hij"
+    sc.delete(100, 1000)
+    assert str(sc) == "ab hij"
     sc.delete(0, 10000000)
     assert len(sc.segments) == 0
     assert str(sc) == ""
     assert len(sc) == 0
+
+
+def test_deleteline():
+    sc = SegmentChain()
+    sc.append_literal("one\nline\nper\nword\n")
+    sc.deleteline(0)
+    assert str(sc) == "line\nper\nword\n"
+    sc.deleteline(1)
+    assert str(sc) == "lper\nword\n"
+    sc.deleteline(4)
+    assert str(sc) == "lperword\n"
+    sc.deleteline(9)
+    assert str(sc) == "lperword\n"
+    sc.deleteline(100)
+    assert str(sc) == "lperword\n"
+
+
+def test_deletelines():
+    sc = SegmentChain()
+    sc.append_literal("one\nline\nper\nword\n")
+    sc.deletelines(0, 2)
+    assert str(sc) == "per\nword\n"
+    sc.deletelines(0, 0)
+    assert str(sc) == "per\nword\n"
 
 
 def test___getitem__():

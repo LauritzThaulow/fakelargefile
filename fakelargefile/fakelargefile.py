@@ -106,18 +106,30 @@ class FakeLargeFile(SegmentChain):
                     break
         return "".join(line)
 
-    def deleteline(self, count=1):
+    def readlines(self, sizehint=None):
         """
-        Delete n lines starting from the current position.
+        A list of all the lines left in the file
+
+        :param int sizehint: If given, read to the next newline character
+            after the self.pos + sizehint position.
+
         """
-        # TODO: Split into deleteline and deletelines
-        found_newlines = 0
-        pos = self.pos
+        if sizehint is None:
+            sizehint = self.size - self.pos
+        stop = self.pos + sizehint
+        if stop - self.pos > get_memory_limit():
+            raise MemoryLimitError((
+                "Readlines would result in memory consumption larger "
+                "than the current memory limit, which is {}").format(
+                    get_memory_limit()))
+        ret = []
+        prev_pos = self.pos
         for pos in self.finditer("\n", self.pos, end_pos=True):
-            found_newlines += 1
-            if found_newlines == count:
+            ret.append(self[prev_pos:pos])
+            if stop < pos:
                 break
-        return self.delete_and_return(self.pos, pos)
+            prev_pos = pos
+        return ret
 
     def seek(self, offset, whence=0):
         """

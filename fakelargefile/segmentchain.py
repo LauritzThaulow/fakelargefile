@@ -265,6 +265,29 @@ class SegmentChain(object):
         self.delete(start, stop)
         return ret
 
+    def deleteline(self, start):
+        """
+        Delete one line including newline starting from the given position.
+        """
+        # TODO: generalize to delete_to() method
+        # TODO: enact policy for return values. extra argument?
+        #       deletelines_and_return is not a good solution
+        for pos in self.finditer("\n", start, end_pos=True):
+            return self.delete_and_return(start, pos)
+
+    def deletelines(self, start, count):
+        """
+        Delete the given number of lines starting from the given position.
+        """
+        lines = []
+        segment_start = start
+        for pos in self.finditer("\n", start, end_pos=True):
+            lines.append(self[segment_start:pos])
+            if len(lines) == count:
+                self.delete(start, pos)
+                return lines
+            segment_start = pos
+
     def overwrite(self, segment):
         """
         Overwrite any existing data with the given segment.

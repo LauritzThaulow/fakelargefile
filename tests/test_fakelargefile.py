@@ -75,6 +75,27 @@ def test_readline():
     assert flf.tell() == 2
 
 
+def test_readlines():
+    lines = [str(x) * x + "\n" for x in range(100)]
+    flf = FakeLargeFile()
+    conc_lines = "".join(lines)
+    for start in range(0, len(conc_lines), 13):
+        flf.append_literal(conc_lines[start:start + 13])
+    assert flf.readlines() == lines
+
+    for i in range(20, 40):  # @UnusedVariable
+        flf.seek(0)
+        sizehint = 20
+        if conc_lines[:sizehint].endswith("\n"):
+            end_pos = sizehint
+        else:
+            end_pos = conc_lines.index("\n", sizehint) + 1
+        fasit_conc = conc_lines[:end_pos].rstrip("\n")
+        fasit = [x + "\n" for x in fasit_conc.split("\n")]
+
+        assert flf.readlines(sizehint) == fasit
+
+
 def test_seek():
     flf = FakeLargeFile()
     flf.append_literal("One, two, five!")
@@ -149,3 +170,5 @@ def test_writelines():
     flf.writelines(test_lines)
     assert flf.tell() == sum(map(len, test_lines))
     assert str(flf) == "here's\nsome\nlinesto\nwrite\n"
+
+
