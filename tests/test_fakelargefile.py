@@ -170,5 +170,3 @@ def test_writelines():
     flf.writelines(test_lines)
     assert flf.tell() == sum(map(len, test_lines))
     assert str(flf) == "here's\nsome\nlinesto\nwrite\n"
-
-
