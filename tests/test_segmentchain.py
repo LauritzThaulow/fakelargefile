@@ -204,7 +204,7 @@ def test_delete():
     sc.append_literal(" hijk.")
     sc.delete(11, 16)
     sc.delete(8, 14)
-    assert sc.delete_and_return(2, 4) == "cd"
+    assert sc.delete(2, 4, return_deleted=True) == "cd"
     assert str(sc) == "ab hij"
     sc.delete(100, 1000)
     assert str(sc) == "ab hij"
@@ -272,7 +272,7 @@ def test_overwrite():
     assert str(sc) == "One does not simply!!\x00\x00!"
 
 
-def test_overwrite_and_return():
+def test_overwrite_return_deleted():
     sc = SegmentChain()
     sc.append_literal("Stalagmite")
-    assert sc.overwrite_and_return(LiteralSegment(6, "k")) == "m"
+    assert sc.overwrite(LiteralSegment(6, "k"), return_deleted=True) == "m"

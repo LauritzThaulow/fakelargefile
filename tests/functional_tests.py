@@ -60,7 +60,7 @@ log = logging.getLogger(__name__)
 def test_usage():
     flf = FakeLargeFile([RepeatingSegment(start=0, size="1G", string=BG)])
     assert flf.readline().strip() == "GNU GENERAL PUBLIC LICENSE"
-    deleted = "".join(flf.deletelines(flf.tell(), 2))
+    deleted = "".join(flf.deletelines(flf.tell(), 2, return_deleted=True))
     assert flf.read(10).strip() == "Copyright"
     assert flf.readline() == (
         " (C) 2007 Free Software Foundation, Inc. <http://fsf.org/>\n")
@@ -151,7 +151,7 @@ def test_oom_protection():
         flf.delete(100, 1000000000)
     flf.append(rep_seg)
     with raises_oom_error():
-        flf.delete_and_return(100, 1000000000)
+        flf.delete(100, 1000000000, return_deleted=True)
     with raises_oom_error():
         flf[:]
     with raises_oom_error():

@@ -238,14 +238,20 @@ class SegmentChain(object):
 
         return first_affected, last_affected + 1, before, after
 
-    def delete(self, start, stop):
+    def delete(self, start, stop, return_deleted=False):
         """
         Delete from start to stop.
 
         :param int start: The position at which to start deleting
         :param int stop: The position after the last byte to delete
+        :param bool return_deleted: If True, return what was deleted as a
+            string.
 
         """
+        if return_deleted:
+            ret = self[start:stop]
+        else:
+            ret = None
         start_idx, stop_idx, before, after = self._delete(start, stop)
         replacement = before[:]
         if after:
@@ -256,42 +262,48 @@ class SegmentChain(object):
         self.segment_start[start_idx:] = [
             seg.start for seg in replacement]
         self.update_size()
-
-    def delete_and_return(self, start, stop):
-        """
-        Return the deleted area as a string.
-        """
-        ret = self[start:stop]
-        self.delete(start, stop)
         return ret
 
-    def deleteline(self, start):
+    def deleteline(self, start, return_deleted=False):
         """
         Delete one line including newline starting from the given position.
+
+        :param int start: Start deleting at this position.
+        :param bool return_deleted: If True, return what was deleted as a
+            string.
+
         """
         # TODO: generalize to delete_to() method
-        # TODO: enact policy for return values. extra argument?
-        #       deletelines_and_return is not a good solution
         for pos in self.finditer("\n", start, end_pos=True):
-            return self.delete_and_return(start, pos)
+            return self.delete(start, pos, return_deleted)
 
-    def deletelines(self, start, count):
+    def deletelines(self, start, count, return_deleted=False):
         """
         Delete the given number of lines starting from the given position.
         """
-        lines = []
+        ret = []
         segment_start = start
-        for pos in self.finditer("\n", start, end_pos=True):
-            lines.append(self[segment_start:pos])
-            if len(lines) == count:
+        for i, pos in enumerate(self.finditer("\n", start, end_pos=True), 1):
+            if return_deleted:
+                ret.append(self[segment_start:pos])
+            if i == count:
                 self.delete(start, pos)
-                return lines
+                return ret if ret else None
             segment_start = pos
 
-    def overwrite(self, segment):
+    def overwrite(self, segment, return_deleted=False):
         """
         Overwrite any existing data with the given segment.
+
+        :param AbstractSegment segment: The segment to write.
+        :param bool return_deleted: If True, return what was deleted as a
+            string.
+
         """
+        if return_deleted:
+            ret = self[segment.start:segment.stop]
+        else:
+            ret = None
         if segment.start < self.size:
             start_idx, stop_idx, before, after = self._delete(
                 segment.start, segment.stop)
@@ -304,15 +316,6 @@ class SegmentChain(object):
             if self.size < segment.start:
                 self.append(self.fill_gap(self.size, segment.start))
             self.append(segment)
-
-    def overwrite_and_return(self, segment):
-        """
-        Return the overwritten data as a string.
-
-        If segment does not overwrite any data, an empty string is returned.
-        """
-        ret = self[segment.start:segment.stop]
-        self.overwrite(segment)
         return ret
 
     def append(self, segment):
