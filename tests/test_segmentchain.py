@@ -219,7 +219,7 @@ def test_deleteline():
     sc.append_literal("one\nline\nper\nword\n")
     sc.deleteline(0)
     assert str(sc) == "line\nper\nword\n"
-    sc.deleteline(1)
+    assert sc.deleteline(1, return_deleted=True) == "ine\n"
     assert str(sc) == "lper\nword\n"
     sc.deleteline(4)
     assert str(sc) == "lperword\n"

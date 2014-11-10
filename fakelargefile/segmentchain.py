@@ -264,6 +264,50 @@ class SegmentChain(object):
         self.update_size()
         return ret
 
+    def delete_to(
+            self, start, string, count=1, end_pos=True,
+            return_deleted=False):
+        """
+        Delete by search string.
+
+        :param int start: The start point of the deletion and the start point
+            of the search for string.
+        :param str string: The string to search for. If no match is found,
+            delete to the end of the file.
+        :param int count: How many repeated searches to perform before
+            returning.
+        :param bool end_pos: If False, don't delete the last match. If True,
+            which is the default, delete the last match too.
+        :param bool return_deleted: If True, return the deleted segment parts
+            as a string.
+        :return: If return_deleted == True, return a list of strings if count
+            > 1 or a single string if count == 1. If return_deleted == False,
+            return None.
+
+        """
+        if count == 0:
+            return
+        ret = []
+        delete_start = start
+        pos_iter = self.finditer(string, start, end_pos=end_pos)
+        for i, pos in enumerate(pos_iter, 1):
+            if return_deleted:
+                ret.append(self[delete_start:pos])
+            if i == count:
+                break
+            delete_start = pos
+        else:
+            pos = self.size
+
+        self.delete(start, pos)
+        if return_deleted:
+            if count == 1:
+                return ret[0]
+            else:
+                return ret
+        else:
+            return None
+
     def deleteline(self, start, return_deleted=False):
         """
         Delete one line including newline starting from the given position.
@@ -273,23 +317,13 @@ class SegmentChain(object):
             string.
 
         """
-        # TODO: generalize to delete_to() method
-        for pos in self.finditer("\n", start, end_pos=True):
-            return self.delete(start, pos, return_deleted)
+        return self.delete_to(start, "\n", 1, True, return_deleted)
 
     def deletelines(self, start, count, return_deleted=False):
         """
         Delete the given number of lines starting from the given position.
         """
-        ret = []
-        segment_start = start
-        for i, pos in enumerate(self.finditer("\n", start, end_pos=True), 1):
-            if return_deleted:
-                ret.append(self[segment_start:pos])
-            if i == count:
-                self.delete(start, pos)
-                return ret if ret else None
-            segment_start = pos
+        return self.delete_to(start, "\n", count, True, return_deleted)
 
     def overwrite(self, segment, return_deleted=False):
         """
