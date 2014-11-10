@@ -22,6 +22,8 @@ COPYING = """\
     along with FakeLargeFile.  If not, see <http://www.gnu.org/licenses/>.
     """
 
+from fakelargefile.config import get_memory_limit
+from fakelargefile.errors import MemoryLimitError
 from fakelargefile.segment.chain import SegmentChain
 from fakelargefile.segment.literal import LiteralSegment
 from fakelargefile.segment.repeating import RepeatingSegment
@@ -84,12 +86,19 @@ class FakeLargeFile(SegmentChain):
         """
         line = []
         start_pos = self.pos
+        current_length = 0
         for seg in self.segment_iter(self.pos):
             while True:
                 line.append(seg.readline(self.pos))
                 self.pos += len(line[-1])
-                if size is not None and self.pos - start_pos >= size:
-                    self.pos -= (self.pos - start_pos) - size
+                current_length = self.pos - start_pos
+                if 2 * current_length > get_memory_limit():
+                    raise MemoryLimitError((
+                        "Readline would result in memory consumption larger "
+                        "than the current memory limit, which is {}").format(
+                            get_memory_limit()))
+                if size is not None and current_length >= size:
+                    self.pos -= current_length - size
                     return "".join(line)[:size]
                 if "\n" in line[-1]:
                     return "".join(line)
@@ -101,15 +110,14 @@ class FakeLargeFile(SegmentChain):
         """
         Delete n lines starting from the current position.
         """
+        # TODO: Split into deleteline and deletelines
         found_newlines = 0
         pos = self.pos
         for pos in self.finditer("\n", self.pos, end_pos=True):
             found_newlines += 1
             if found_newlines == count:
                 break
-        deleted = self[self.pos:pos]
-        self.delete(self.pos, pos)
-        return deleted
+        return self.delete_and_return(self.pos, pos)
 
     def seek(self, offset, whence=0):
         """

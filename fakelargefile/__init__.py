@@ -22,10 +22,12 @@ COPYING = """\
     along with FakeLargeFile.  If not, see <http://www.gnu.org/licenses/>.
     """
 
-from fakelargefile.errors import NotFoundError, NoContainingSegment
+from fakelargefile.errors import (
+    NotFoundError, NoContainingSegment, MemoryLimitError)
 from fakelargefile.fakelargefile import FakeLargeFile
 from fakelargefile.segment import (
     LiteralSegment, RepeatingSegment, HomogenousSegment)
+from fakelargefile.config import get_memory_limit, set_memory_limit
 
 __all__ = [
     "FakeLargeFile", "NoContainingSegment", "NotFoundError", "LiteralSegment",

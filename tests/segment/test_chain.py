@@ -173,8 +173,12 @@ def test_delete():
     sc.append_literal(" hijk.")
     sc.delete(11, 16)
     sc.delete(8, 14)
-    assert sc.delete(2, 4) == "cd"
+    assert sc.delete_and_return(2, 4) == "cd"
     assert str(sc) == "ab hij"
+    sc.delete(0, 10000000)
+    assert len(sc.segments) == 0
+    assert str(sc) == ""
+    assert len(sc) == 0
 
 
 def test___getitem__():
@@ -208,5 +212,10 @@ def test_overwrite():
     sc.overwrite(LiteralSegment(3, " does not simply!"))
     assert str(sc) == "One does not simply!!"
     sc.overwrite(LiteralSegment(23, "!"))
-    print repr(str(sc))
     assert str(sc) == "One does not simply!!\x00\x00!"
+
+
+def test_overwrite_and_return():
+    sc = SegmentChain()
+    sc.append_literal("Stalagmite")
+    assert sc.overwrite_and_return(LiteralSegment(6, "k")) == "m"

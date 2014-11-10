@@ -1,5 +1,5 @@
 '''
-Errors for use in this package
+Functional tests for the FakeLargeFile package.
 '''
 
 COPYING = """\
@@ -21,13 +21,11 @@ COPYING = """\
     """
 
 
-class NotFoundError(Exception):
-    pass
+from fakelargefile.config import (
+    set_memory_limit, get_memory_limit)
 
 
-class NoContainingSegment(Exception):
-    pass
-
-
-class MemoryLimitError(Exception):
-    pass
+def test_memory_limit():
+    for i in range(1, 1000000000, 500000000):
+        set_memory_limit(i)
+        assert get_memory_limit() == i

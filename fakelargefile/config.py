@@ -1,5 +1,5 @@
 '''
-Errors for use in this package
+Config for the FakeLargeFile package
 '''
 
 COPYING = """\
@@ -21,13 +21,13 @@ COPYING = """\
     """
 
 
-class NotFoundError(Exception):
-    pass
+MEMORY_LIMIT = 1000000000
 
 
-class NoContainingSegment(Exception):
-    pass
+def set_memory_limit(byte_count):
+    global MEMORY_LIMIT
+    MEMORY_LIMIT = byte_count
 
 
-class MemoryLimitError(Exception):
-    pass
+def get_memory_limit():
+    return MEMORY_LIMIT

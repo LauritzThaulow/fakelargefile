@@ -26,7 +26,8 @@ from bisect import bisect
 from itertools import islice
 from collections import deque
 
-from fakelargefile.errors import NoContainingSegment
+from fakelargefile.config import get_memory_limit
+from fakelargefile.errors import NoContainingSegment, MemoryLimitError
 from fakelargefile.segment import LiteralSegment, RepeatingSegment
 
 
@@ -42,16 +43,18 @@ class SegmentChain(object):
         Initialize a SegmentChain.
 
         :param list segments: A list of instances implementing the Segment
-            interface.
+            interface. They will be applied in order, the first ones possibly
+            being partly or wholly overwritten by the following ones.
         :param str fill_gaps: If there are gaps between the segments, on init
             or by later insertion, fill them with RepeatingSegment instances
-            using the given string. If the fill_gaps is None or some other
-            value that evaluates to False, a ValueError will be raised
-            instead if a gap is found.
+            using the given string. If the fill_gaps value evaluates to False,
+            a ValueError will be raised instead if the segments are not
+            contiguous.
 
         """
         if segments is None:
             segments = []
+        self.size = 0
         self.fill_gaps = fill_gaps
         self.init_segments(segments)
 
@@ -79,19 +82,13 @@ class SegmentChain(object):
 
     def init_segments(self, segments):
         """
+        Check the provided segments and append each to this FakeLargeFile.
         If the segments are not contiguous starting from 0, raise ValueError.
         """
-        last_stop = 0
         self.segments = []
         self.segment_start = []
         for seg in segments:
-            if seg.start != last_stop:
-                self.segments.append(self.fill_gap(last_stop, seg.start))
-                self.segment_start.append(last_stop)
-            last_stop = seg.stop
-            self.segments.append(seg)
-            self.segment_start.append(seg.start)
-        self.update_size()
+            self.overwrite(seg)
 
     def segment_containing(self, pos):
         """
@@ -246,7 +243,6 @@ class SegmentChain(object):
         :param int stop: The position after the last byte to delete
 
         """
-        ret = self[start:stop]
         start_idx, stop_idx, before, after = self._delete(start, stop)
         replacement = before[:]
         if after:
@@ -257,6 +253,13 @@ class SegmentChain(object):
         self.segment_start[start_idx:] = [
             seg.start for seg in replacement]
         self.update_size()
+
+    def delete_and_return(self, start, stop):
+        """
+        Return the deleted area as a string.
+        """
+        ret = self[start:stop]
+        self.delete(start, stop)
         return ret
 
     def overwrite(self, segment):
@@ -276,11 +279,24 @@ class SegmentChain(object):
                 self.append(self.fill_gap(self.size, segment.start))
             self.append(segment)
 
+    def overwrite_and_return(self, segment):
+        """
+        Return the overwritten data as a string.
+
+        If segment does not overwrite any data, an empty string is returned.
+        """
+        ret = self[segment.start:segment.stop]
+        self.overwrite(segment)
+        return ret
+
     def append(self, segment):
         """
-        Insert a copy of segment which start where the last segment stops.
+        Insert a segment which start where the last segment stops.
         """
-        self.segments.append(segment.copy(start=self.size))
+        if self.size == segment.start:
+            self.segments.append(segment)
+        else:
+            self.segments.append(segment.copy(start=self.size))
         self.segment_start.append(self.size)
         self.update_size()
 
@@ -299,7 +315,7 @@ class SegmentChain(object):
         .. warning:: The returned string may be too large to fit in RAM and
         cause a MemoryError.
         """
-        return "".join(str(segment) for segment in self.segments)
+        return self[:]
 
     def __getitem__(self, slice_):
         """
@@ -313,11 +329,20 @@ class SegmentChain(object):
         regular string.
         """
         start, stop, step = slice_.indices(self.size)
+        # check if step moves in the wrong direction
         if (stop - start) * step < 0:
-            # step moves in the wrong direction
             return ""
+        # make it so that start < stop. We'll reverse at the end.
         if step < 0:
             start, stop = stop + 1, start + 1
+        # if the requested string is too large, protest!
+        required_memory = 2 * (stop - start)
+        memory_limit = get_memory_limit()
+        if required_memory > memory_limit:
+            raise MemoryLimitError((
+                "Operation would require more more than {} bytes of ram, "
+                "the current limit is {} bytes.").format(
+                    required_memory, memory_limit))
         ret = []
         for segment in self.segment_iter(start):
             start_index = max(start, segment.start)

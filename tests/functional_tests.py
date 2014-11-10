@@ -21,7 +21,9 @@ COPYING = """\
     """
 
 
-from fakelargefile import FakeLargeFile, RepeatingSegment
+from fakelargefile import (
+    FakeLargeFile, RepeatingSegment, LiteralSegment, MemoryLimitError,
+    set_memory_limit, get_memory_limit)
 
 BG = """\
                     GNU GENERAL PUBLIC LICENSE
@@ -48,7 +50,9 @@ your programs, too.
 """
 
 
+import time
 import logging
+from contextlib import contextmanager
 
 
 log = logging.getLogger(__name__)
@@ -111,3 +115,50 @@ def test_remaining_file_like_object_methods():
     assert flf.softspace == 0
     flf.softspace = 1
     assert flf.softspace == 1
+
+
+@contextmanager
+def takes_less_than(seconds):
+    t = time.time()
+    try:
+        yield
+    finally:
+        duration = time.time() - t
+        if duration > seconds:
+            assert False, (
+                "Operation should take less than {:.2f}s, took {:.2f}s."
+                ).format(seconds, duration)
+
+
+@contextmanager
+def raises_oom_error():
+    try:
+        yield
+    except MemoryLimitError:
+        pass
+    else:
+        assert False, "Operation should have raised MemoryLimitError"
+
+
+def test_oom_protection():
+    rep_seg = RepeatingSegment(0, "1G", (
+        "time that you can work to make more money to buy you things "
+        "you need to save "))
+    flf = FakeLargeFile()
+    flf.append(LiteralSegment(0, "Think of all the "))
+    flf.append(rep_seg)
+    flf.append(rep_seg)
+    with takes_less_than(0.1):
+        flf.delete(100, 1000000000)
+    flf.append(rep_seg)
+    with raises_oom_error():
+        flf.delete_and_return(100, 1000000000)
+    with raises_oom_error():
+        flf[:]
+    with raises_oom_error():
+        str(flf)
+    with raises_oom_error():
+        flf.readline()
+    flf.seek(0)
+    with raises_oom_error():
+        flf.read()
