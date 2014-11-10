@@ -24,7 +24,7 @@ COPYING = """\
 
 from fakelargefile.config import get_memory_limit
 from fakelargefile.errors import MemoryLimitError
-from fakelargefile.segment.chain import SegmentChain
+from fakelargefile.segmentchain import SegmentChain
 from fakelargefile.segment.literal import LiteralSegment
 from fakelargefile.segment.repeating import RepeatingSegment
 

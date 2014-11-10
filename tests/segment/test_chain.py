@@ -1,5 +1,5 @@
 '''
-Tests for the segment.chain submodule of FakeLargeFile.
+Tests for the segmentchain submodule of FakeLargeFile.
 '''
 
 COPYING = """\
@@ -24,7 +24,7 @@ COPYING = """\
 from mock import Mock
 
 from fakelargefile.errors import NoContainingSegment
-from fakelargefile.segment.chain import SegmentChain
+from fakelargefile.segmentchain import SegmentChain
 from fakelargefile.segment.literal import LiteralSegment
 
 LS = LiteralSegment
