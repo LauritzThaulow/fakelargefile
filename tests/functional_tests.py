@@ -22,8 +22,7 @@ COPYING = """\
 
 
 from fakelargefile import (
-    FakeLargeFile, RepeatingSegment, LiteralSegment, MemoryLimitError,
-    set_memory_limit, get_memory_limit)
+    FakeLargeFile, RepeatingSegment, LiteralSegment, MemoryLimitError)
 
 BG = """\
                     GNU GENERAL PUBLIC LICENSE
