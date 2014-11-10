@@ -317,6 +317,12 @@ class SegmentChain(object):
         """
         return self[:]
 
+    def __len__(self):
+        """
+        Return the length of this SegmentChain
+        """
+        return self.size
+
     def __getitem__(self, slice_):
         """
         Random access read of the file content
