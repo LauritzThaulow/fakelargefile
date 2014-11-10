@@ -114,24 +114,37 @@ class SegmentChain(object):
         else:
             return islice(self.segments, start, None)
 
-    def finditer(self, string, start_pos=0, end_pos=False):
+    def finditer(self, string, start=0, stop=None, end_pos=False):
         """
         Iterate over indices of occurences of string.
+
+        :param str string: The string to search for.
+        :param int start: Where to start searching. Default is 0.
+        :param int stop: Where to stop searching. If not given or None,
+            self.stop is used.
+        :param bool end_pos: If False, which is the default, yield the
+            indices of the start of the matches. If True, yield the indices
+            of the first byte after each match.
+
         """
-        pos = start_pos
-        tail = OverlapSearcher(string)
-        for seg in self.segment_iter(start_pos):
+        pos = start
+        if stop is None:
+            stop = self.size
+        overlap = OverlapSearcher(string)
+        for seg in self.segment_iter(start):
+            if stop <= seg.start:
+                return
             # Yield indices that would not be found in any segment because
             # the search string is split across segments
-            for index in tail.index_iter(seg):
-                if end_pos:
-                    index += len(string)
+            for index in overlap.index_iter(seg, stop, end_pos):
                 yield index
+            # TODO: write test for and fix "a|aa".finditer("aa") case, which
+            # will return overlapping matches but shouldn't
             while True:
                 try:
-                    pos = seg.index(string, pos, end_pos=end_pos)
+                    pos = seg.index(string, pos, stop, end_pos=end_pos)
                 except ValueError:
-                    tail.append(seg)
+                    overlap.append(seg)
                     pos = seg.stop
                     break
                 else:
@@ -151,16 +164,8 @@ class SegmentChain(object):
         :param bool end_pos: If given, return the position following the end
             of the string, instead of the position of the start of the string.
         """
-        # TODO: add stop argument to finditer
-        if stop is None:
-            stop = self.size
-        for index in self.finditer(string, start):
-            if stop < index + len(string):
-                break
-            if end_pos:
-                return index + len(string)
-            else:
-                return index
+        for index in self.finditer(string, start, stop, end_pos):
+            return index
         raise ValueError()
 
     def insert(self, segment):

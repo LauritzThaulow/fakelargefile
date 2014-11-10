@@ -56,7 +56,8 @@ class LiteralSegment(AbstractSegment):
         return type(self)(start, self.string)
 
     def index(self, string, start=None, stop=None, end_pos=False):
-        local_start, local_stop = self.parse_slice(start, stop, local=True)
+        local_start, local_stop = self.parse_slice(
+            start, stop, local=True, clamp=True)
         index = self.string.index(string, local_start, local_stop)
         if end_pos:
             index += len(string)

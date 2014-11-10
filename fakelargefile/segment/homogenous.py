@@ -53,7 +53,7 @@ class HomogenousSegment(AbstractSegment):
             raise ValueError()
         if string and string[0] != self.char:
             raise ValueError()
-        start, stop = self.parse_slice(start, stop)
+        start, stop = self.parse_slice(start, stop, clamp=True)
         if stop - start < len(string):
             raise ValueError()
         if end_pos:

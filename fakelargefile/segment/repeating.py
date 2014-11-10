@@ -53,7 +53,7 @@ class RepeatingSegment(AbstractSegment):
         return type(self)(start, self.size, self.string)
 
     def index(self, string, start=None, stop=None, end_pos=False):
-        start, stop = self.parse_slice(start, stop, local=True)
+        start, stop = self.parse_slice(start, stop, local=True, clamp=True)
         in_string_start = start % len(self.string)
         to_add = start - in_string_start
         assert to_add + in_string_start == start

@@ -64,12 +64,17 @@ class OverlapSearcher(object):
         while self.length - len([0]) > self.overlap_size:
             self.length -= len(self.segments.popleft())
 
-    def index_iter(self, next_segment):
+    def index_iter(self, next_segment, stop=None, end_pos=False):
         """
         Yield indices of all non-overlapping locations of search string.
 
         :param AbstractSegment next_segment: The segment which begins where
             the previously appended segment ends.
+        :param int stop: Stop searching at this index. Matches ending beyond
+            this position will not be yielded.
+        :param bool end_pos: If False, which is the default, yield the
+            indices of the start of the matches. If True, yield the indices
+            of the first byte after each match.
 
         This method combines the segments appended up to now with with
         a next_segment given in the arguments, and then yields the indices
@@ -78,11 +83,17 @@ class OverlapSearcher(object):
 
         This method is guaranteed to only return matches which cross the
         boundary between the previously appended segment and next_segment.
+        In other words, no matches wholly to the right *or* left of
+        segment.start will be yielded.
         """
+        if stop <= next_segment.start:
+            raise ValueError(
+                "The stop argument should be larger than next_segment.start.")
         left_overlap = "".join(map(str, self.segments))[-self.overlap_size:]
+        max_right_overlap = next_segment.start + self.overlap_size
         right_overlap = next_segment.substring(
             next_segment.start,
-            min(next_segment.start + self.overlap_size, next_segment.stop))
+            min(max_right_overlap, next_segment.stop, stop))
         overlap_string = left_overlap + right_overlap
         overlap_pos = 0
         while True:
@@ -91,5 +102,8 @@ class OverlapSearcher(object):
             except ValueError:
                 break
             else:
-                yield overlap_pos - len(left_overlap) + next_segment.start
+                pos = overlap_pos - len(left_overlap) + next_segment.start
+                if end_pos:
+                    pos += len(self.string)
+                yield pos
                 overlap_pos += len(self.string)

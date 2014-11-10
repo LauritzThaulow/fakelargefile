@@ -238,9 +238,10 @@ class AbstractSegment(object):
         Return the index of the next occurence of string.
 
         :param str string: The string to search for
-        :param int start: The index to start at, self.start by default.
+        :param int start: The index to start at, self.start by default. If
+            less than self.start, use self.start.
         :param int stop: The index at which to stop searching, self.stop by
-            default.
+            default. If greater than self.stop, use self.stop.
         :param bool end_pos: Return the index after the end of the found
             string instead of the index of the beginning.
 

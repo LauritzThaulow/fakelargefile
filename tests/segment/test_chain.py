@@ -105,6 +105,9 @@ def test_finditer():
     for idx in sc.finditer("is"):
         ret.append(idx)
     assert ret == fasit
+    ret = list(sc.finditer("segment. ", stop=len(strings[0])))
+    assert len(ret) == 1
+    assert ret[0] == 12
 
 
 def test_finditer_across_segments():
@@ -112,6 +115,7 @@ def test_finditer_across_segments():
     string = "aafaffafffafffffafa"
     chunk = ""
     control = ""
+    # Group consecutive stretches of equal characters in the same segment.
     for char in string:
         if chunk == "" or char == chunk[-1]:
             chunk += char
