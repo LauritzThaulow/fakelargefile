@@ -92,7 +92,7 @@ class AbstractSegment(object):
             raise ValueError(
                 "Cant cut from {} to {} on segment from {} to {}".format(
                     start, stop, self.start, self.stop))
-        sl = Slice(self, start, stop)
+        sl = Slice(start, stop, self.start, self.stop)
         result = []
         if self.start < sl.start:
             result.append(self.subsegment(self.start, sl.start))

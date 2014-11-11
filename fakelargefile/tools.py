@@ -70,7 +70,7 @@ class Slice(object):
     """
     Calculate interesting attributes using the given segment slice.
     """
-    def __init__(self, segment, start, stop, clamp=True):
+    def __init__(self, start, stop, minimum, maximum, clamp=True):
         """
         Initialize a Slice instance.
 
@@ -80,13 +80,16 @@ class Slice(object):
         :param stop: The global stop index of the slice, relative to the start
             of the file.
         :type stop: int or NoneType
+        :param int minimum: The minimum value for start and stop.
+        :param int maximum: The maximum value for start and stop.
         :param bool clamp: If True, which is the default, bring out of bounds
             values for start and stop to the closest possible value inside
             the bounds. If False, a ValueError is raised for out of bounds
             indices.
 
         """
-        self.segment = segment
+        self.minimum = minimum
+        self.maximum = maximum
         self.clamp = clamp
         self._parse(start, stop)
 
@@ -94,28 +97,26 @@ class Slice(object):
         """
         Do the actual parsing of the slice.
         """
-        seg = self.segment
         if start is None:
-            start = seg.start
+            start = self.minimum
         if stop is None:
-            stop = seg.stop
-        if not (seg.start <= start <= stop <= seg.stop):
+            stop = self.maximum
+        if not (self.minimum <= start <= stop <= self.maximum):
             if self.clamp:
                 if stop < start:
                     raise ValueError(
                         "The start pos must be before the stop pos.")
-                start = max(seg.start, start)
-                stop = min(seg.stop, stop)
+                start = max(self.minimum, start)
+                stop = min(self.maximum, stop)
             else:
                 raise ValueError((
                     "Arguments start={} and stop={} do not fulfill these "
-                    "constraint:\n {} == self.start <= start <= stop <= "
-                    "self.stop == {}").format(
-                        start, stop, seg.start, seg.stop))
+                    "constraint:\n {} <= start <= stop <= {}").format(
+                        start, stop, self.minimum, self.maximum))
         self.start = start
         self.stop = stop
-        self.local_start = start - seg.start
-        self.local_stop = stop - seg.start
+        self.local_start = start - self.minimum
+        self.local_stop = stop - self.minimum
         self.size = stop - start
         self.slice = slice(start, stop)
         self.local_slice = slice(self.local_start, self.local_stop)

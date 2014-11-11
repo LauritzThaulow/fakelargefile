@@ -21,16 +21,14 @@ COPYING = """\
     """
 
 
-from mock import Mock
+from nose.tools import nottest
 
 from fakelargefile.tools import Slice
 
 
-def test_Slice():
-    seg = Mock()
-    seg.start = 7
-    seg.stop = 17
-    sl = Slice(seg, None, None)
+@nottest
+def int_test_Slice(clamp):
+    sl = Slice(None, None, 7, 17)
     assert sl.start == 7
     assert sl.stop == 17
     assert sl.size == 10
@@ -38,25 +36,35 @@ def test_Slice():
     assert sl.local_stop == 10
     assert sl.slice == slice(7, 17)
     assert sl.local_slice == slice(0, 10)
-    sl = Slice(seg, None, 15)
+    sl = Slice(None, 15, 7, 17, clamp=clamp)
     assert sl.start == 7
     assert sl.stop == 15
-    sl = Slice(seg, 10, None)
+    sl = Slice(10, None, 7, 17, clamp=clamp)
     assert sl.start == 10
     assert sl.stop == 17
-    sl = Slice(seg, 11, 12)
+    sl = Slice(11, 12, 7, 17, clamp=clamp)
     assert sl.start == 11
     assert sl.stop == 12
-    sl = Slice(seg, 7, 17)
-    assert sl.start == 7
-    assert sl.stop == 17
-    sl = Slice(seg, -1000, 1000)
+    sl = Slice(7, 17, 7, 17, clamp=clamp)
     assert sl.start == 7
     assert sl.stop == 17
 
+
+def test_Slice_wo_clamp():
+    int_test_Slice(False)
+
+
+def test_Slice_w_clamp():
+    int_test_Slice(True)
+
+
+def test_Slice_clamp():
+    sl = Slice(-1000, 1000, 7, 17)
+    assert sl.start == 7
+    assert sl.stop == 17
     for start, stop in ((6, 17), (7, 18), (15, 10)):
         try:
-            Slice(seg, start, stop, clamp=False)
+            Slice(start, stop, 7, 17, clamp=False)
         except ValueError:
             assert True
         else:

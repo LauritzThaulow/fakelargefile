@@ -38,7 +38,7 @@ class LiteralSegment(AbstractSegment):
         self.string = string
 
     def subsegment(self, start, stop):
-        sl = Slice(self, start, stop)
+        sl = Slice(start, stop, self.start, self.stop)
         # TODO: class method accepting Slice instances?
         return type(self)(sl.start, self.string[sl.local_slice])
 
@@ -58,14 +58,14 @@ class LiteralSegment(AbstractSegment):
         return type(self)(start, self.string)
 
     def index(self, string, start=None, stop=None, end_pos=False):
-        sl = Slice(self, start, stop)
+        sl = Slice(start, stop, self.start, self.stop)
         index = self.string.index(string, sl.local_start, sl.local_stop)
         if end_pos:
             index += len(string)
         return self.start + index
 
     def substring(self, start, stop):
-        sl = Slice(self, start, stop, clamp=False)
+        sl = Slice(start, stop, self.start, self.stop, clamp=False)
         return self.string[sl.local_slice]
 
     def __str__(self):

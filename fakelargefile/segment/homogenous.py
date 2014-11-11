@@ -35,7 +35,7 @@ class HomogenousSegment(AbstractSegment):
         self.char = char
 
     def subsegment(self, start, stop):
-        sl = Slice(self, start, stop)
+        sl = Slice(start, stop, self.start, self.stop)
         return type(self)(sl.start, sl.stop, self.char)
 
     @classmethod
@@ -54,7 +54,7 @@ class HomogenousSegment(AbstractSegment):
         # and it must use the same character
         if string and string[0] != self.char:
             raise ValueError()
-        sl = Slice(self, start, stop)
+        sl = Slice(start, stop, self.start, self.stop)
         if sl.size < len(string):
             raise ValueError()
         if end_pos:
@@ -63,7 +63,7 @@ class HomogenousSegment(AbstractSegment):
             return sl.start
 
     def substring(self, start=None, stop=None):
-        sl = Slice(self, start, stop, clamp=False)
+        sl = Slice(start, stop, self.start, self.stop, clamp=False)
         return self.char * sl.size
 
     def __str__(self):

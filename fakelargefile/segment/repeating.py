@@ -45,7 +45,7 @@ class RepeatingSegment(AbstractSegment):
         self.string_thrice = string * 3
 
     def subsegment(self, start, stop):
-        sl = Slice(self, start, stop)
+        sl = Slice(start, stop, self.start, self.stop)
         start_at = sl.local_start % len(self.string)
         string = self.string[start_at:] + self.string[:start_at]
         new_string_length = min(sl.size, len(self.string))
@@ -66,7 +66,7 @@ class RepeatingSegment(AbstractSegment):
         return type(self)(start, start + self.size, self.string)
 
     def index(self, string, start=None, stop=None, end_pos=False):
-        sl = Slice(self, start, stop)
+        sl = Slice(start, stop, self.start, self.stop)
         in_string_start = sl.local_start % len(self.string)
         to_add = sl.local_start - in_string_start
         assert to_add + in_string_start == sl.local_start
@@ -78,7 +78,7 @@ class RepeatingSegment(AbstractSegment):
         return self.start + to_add + index
 
     def substring(self, start, stop):
-        sl = Slice(self, start, stop, clamp=False)
+        sl = Slice(start, stop, self.start, self.stop, clamp=False)
         rep_size = len(self.string)
         modulus_start = sl.local_start % rep_size
         if sl.size < 2 * rep_size:
