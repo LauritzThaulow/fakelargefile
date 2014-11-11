@@ -214,6 +214,13 @@ def test_delete():
     assert len(sc) == 0
 
 
+def test_delete_to():
+    sc = SegmentChain()
+    sc.append_literal("ab")
+    sc.delete_to(1, "c")
+    assert str(sc) == "a"
+
+
 def test_deleteline():
     sc = SegmentChain()
     sc.append_literal("one\nline\nper\nword\n")

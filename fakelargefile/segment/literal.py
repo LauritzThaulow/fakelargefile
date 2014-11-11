@@ -39,7 +39,6 @@ class LiteralSegment(AbstractSegment):
 
     def subsegment(self, start, stop):
         sl = Slice(start, stop, self.start, self.stop)
-        # TODO: class method accepting Slice instances?
         return type(self)(sl.start, self.string[sl.local_slice])
 
     @classmethod

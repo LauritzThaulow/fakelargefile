@@ -27,6 +27,7 @@ from itertools import islice
 
 from fakelargefile.config import get_memory_limit
 from fakelargefile.errors import NoContainingSegment, MemoryLimitError
+from fakelargefile.tools import Slice
 from fakelargefile.segment import LiteralSegment, RepeatingSegment
 from fakelargefile.segmenttail import OverlapSearcher
 
@@ -248,17 +249,17 @@ class SegmentChain(object):
             string.
 
         """
-        # TODO: Use Slice
+        sl = Slice(start, stop, 0, self.size)
         if return_deleted:
-            ret = self[start:stop]
+            ret = self[sl.slice]
         else:
             ret = None
-        start_idx, stop_idx, before, after = self._delete(start, stop)
+        start_idx, stop_idx, before, after = self._delete(sl.start, sl.stop)
         replacement = before[:]
         if after:
-            replacement.append(after[0].copy(start=start))
+            replacement.append(after[0].copy(start=sl.start))
         for seg in self.segments[stop_idx:]:
-            replacement.append(seg.copy(start=seg.start - (stop - start)))
+            replacement.append(seg.copy(start=seg.start - sl.size))
         self.segments[start_idx:] = replacement
         self.segment_start[start_idx:] = [
             seg.start for seg in replacement]
@@ -287,6 +288,8 @@ class SegmentChain(object):
 
         """
         if count == 0:
+            return
+        if self.size <= start:
             return
         ret = []
         delete_start = start
@@ -398,7 +401,6 @@ class SegmentChain(object):
         Border conditions are handled in the same way as when slicing a
         regular string.
         """
-        # TODO: Use Slice?
         start, stop, step = slice_.indices(self.size)
         # check if step moves in the wrong direction
         if (stop - start) * step < 0:
