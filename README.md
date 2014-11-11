@@ -2,7 +2,7 @@ fakelargefile
 =============
 
 *This package is first and foremost an exercise in doing a python package*
-the right way*. I'm trying to do check all the boxes. Documentation, tests
+the right way. *I'm trying to do check all the boxes. Documentation, tests
 with full coverage, commit messages, pep8, structure, code comments, 
 the works. Please tell me what I can do to improve this package!*
 
