@@ -33,11 +33,9 @@ class HomogenousSegment(AbstractSegment):
                 "Argument char must be a single byte, not {!r}.".format(char))
         self.char = char
 
-    def left_part(self, stop):
-        return type(self)(self.start, stop - self.start, self.char)
-
-    def right_part(self, start):
-        return type(self)(start, self.stop - start, self.char)
+    def subsegment(self, start, stop):
+        start, stop = self.parse_slice(start, stop, clamp=True)
+        return type(self)(start, stop - start, self.char)
 
     @classmethod
     def example(cls, start, size):

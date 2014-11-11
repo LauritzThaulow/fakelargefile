@@ -132,9 +132,9 @@ class AbstractSegment(object):
         start, stop = self.parse_slice(start, stop, clamp=True)
         result = []
         if self.start < start:
-            result.append(self.left_part(start))
+            result.append(self.subsegment(self.start, start))
         if stop < self.stop:
-            result.append(self.right_part(stop))
+            result.append(self.subsegment(stop, self.stop))
         return result
 
     def cut_at(self, index):
@@ -151,7 +151,7 @@ class AbstractSegment(object):
             raise ValueError(
                 "The given index must be between {} and {}, got {}".format(
                     self.start, self.stop, index))
-        return self.left_part(index), self.right_part(index)
+        return self.subsegment(None, index), self.subsegment(index, None)
 
     def readline(self, pos):
         """
@@ -194,22 +194,18 @@ class AbstractSegment(object):
             type(self).__name__, self.start, self.stop)
 
     @abstractmethod
-    def left_part(self, stop):
+    def subsegment(self, start, stop):
         """
-        Return the subsegment from self.start to stop.
+        Return a segment with the same data as this segment in the interval.
 
-        If stop is outside of this segment, the result is undefined.
-        """
-        raise NotImplementedError()
+        :param start: The start position of the returned segment. Use
+            self.start if None. If less than self.start, use self.start.
+        :type start: int or NoneType
+        :param stop: The stop position of the returned segment. Use self.stop
+            if None. If greater than self.stop, use self.stop.
+        :type stop: int or NoneType
+        :return: A segment containing the same string as the given segment.
 
-    @abstractmethod
-    def right_part(self, start):
-        """
-        Return the subsegment from start to self.stop.
-
-        The returned segment is not moved, i.e. it starts at `start`.
-
-        If start is outside of this segment, the result is undefined.
         """
         raise NotImplementedError()
 

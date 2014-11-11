@@ -58,8 +58,7 @@ class OverlapSearcher(object):
             self.clear()
         else:
             overlap_start = segment.start
-        # TODO: implement segment.subsegment?
-        tail_tip = segment.right_part(overlap_start)
+        tail_tip = segment.subsegment(overlap_start, segment.stop)
         self.segments.append(tail_tip)
         self.length += len(tail_tip)
         while self.length - len([0]) > self.overlap_size:

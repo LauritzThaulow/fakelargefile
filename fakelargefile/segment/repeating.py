@@ -33,13 +33,17 @@ class RepeatingSegment(AbstractSegment):
         # For speedy wrapping operations
         self.string_thrice = string * 3
 
-    def left_part(self, stop):
-        return type(self)(self.start, stop - self.start, self.string)
-
-    def right_part(self, start):
-        split_at = (start - self.start) % len(self.string)
-        string = self.string[split_at:] + self.string[:split_at]
-        return type(self)(start, self.stop - start, string)
+    def subsegment(self, start, stop):
+        # TODO: make parse_slice a class with local and absolute attributes
+        # TODO: make init take start, stop instead of start, size
+        start, stop = self.parse_slice(start, stop, clamp=True)
+        start_at = (start - self.start) % len(self.string)
+        string = self.string[start_at:] + self.string[:start_at]
+        new_string_length = min(stop - start, len(self.string))
+        if new_string_length < len(self.string):
+            return type(self)(start, stop - start, string[:new_string_length])
+        else:
+            return type(self)(start, stop - start, string[:new_string_length])
 
     @classmethod
     def example(cls, start, size):

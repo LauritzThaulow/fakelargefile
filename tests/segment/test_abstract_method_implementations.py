@@ -23,7 +23,7 @@ COPYING = """\
 
 import logging
 
-from mock import Mock
+from mock import Mock, call
 
 from fakelargefile.segment import segment_types
 
@@ -169,6 +169,7 @@ def test_cut_in_half():
         assert len(first) == len(str(first)) == 3
         assert first.start == 8
         assert first.stop == 11
+        print repr(content), repr(str(last))
         assert str(last) == content[3:]
         assert len(last) == len(str(last)) == 29
         assert last.start == 11
@@ -179,11 +180,10 @@ def test_cut_at():
     for segment_type in segment_types:
         log.debug(segment_type)
         segment = segment_type.example(start=3, size=10)
-        segment.left_part = Mock()
-        segment.right_part = Mock()
+        segment.subsegment = Mock()
         segment.cut_at(5)
-        segment.left_part.assert_called_once_with(5)
-        segment.right_part.assert_called_once_with(5)
+        assert segment.subsegment.call_args_list == [
+            call(None, 5), call(5, None)]
         try:
             segment.cut_at(2)
         except ValueError:

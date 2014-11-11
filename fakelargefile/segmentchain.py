@@ -221,7 +221,7 @@ class SegmentChain(object):
             if segment.start == start:
                 before = []
             else:
-                before = [segment.left_part(start)]
+                before = [segment.subsegment(None, start)]
 
         try:
             last_affected = self.segment_containing(stop)
@@ -234,7 +234,7 @@ class SegmentChain(object):
                 after = []
                 last_affected -= 1
             else:
-                after = [segment.right_part(stop)]
+                after = [segment.subsegment(stop, None)]
 
         return first_affected, last_affected + 1, before, after
 

@@ -36,11 +36,11 @@ class LiteralSegment(AbstractSegment):
         super(LiteralSegment, self).__init__(start, len(string))
         self.string = string
 
-    def left_part(self, stop):
-        return type(self)(self.start, self.string[:stop - self.start])
-
-    def right_part(self, start):
-        return type(self)(start, self.string[start - self.start:])
+    def subsegment(self, start, stop):
+        start, stop = self.parse_slice(start, stop, clamp=True)
+        local_start, local_stop = self.parse_slice(
+            start, stop, local=True, clamp=True)
+        return type(self)(start, self.string[local_start:local_stop])
 
     @classmethod
     def example(cls, start, size):
