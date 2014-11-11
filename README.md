@@ -1,14 +1,14 @@
 fakelargefile
 =============
 
-# Developers note
+### Developers note
 
 *This package is first and foremost an exercise in doing a python package*
 the right way. *I'm trying to cover all the bases. Documentation, tests
 with full coverage, commit messages, pep8, structure, code comments, 
 the works. Please tell me what I can do to improve this package!*
 
-# Intro
+### Intro
 
 A FakeLargeFile is a file-like object that simulates a very large file while
 requiring very little memory and being smart about operations.
