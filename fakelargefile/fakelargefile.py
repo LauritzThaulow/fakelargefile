@@ -218,8 +218,8 @@ class FakeLargeFile(SegmentChain):
         """
         if size is None:
             size = self.pos
-        if size > self.size:
-            self.append(RepeatingSegment(self.size, size - self.size, "\x00"))
+        if self.size < size:
+            self.append(RepeatingSegment(self.size, size, "\x00"))
         else:
             self.delete(size, self.size)
 

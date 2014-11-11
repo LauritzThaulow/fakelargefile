@@ -27,13 +27,14 @@ COPYING = """\
 import pkg_resources
 
 from fakelargefile.segment.abc import AbstractSegment, register_segment
-from fakelargefile.tools import parse_size, Slice
+from fakelargefile.tools import parse_unit, Slice
 
 
 @register_segment
 class LiteralSegment(AbstractSegment):
     def __init__(self, start, string):
-        super(LiteralSegment, self).__init__(start, len(string))
+        start = parse_unit(start)
+        super(LiteralSegment, self).__init__(start, start + len(string))
         self.string = string
 
     def subsegment(self, start, stop):
@@ -42,10 +43,12 @@ class LiteralSegment(AbstractSegment):
         return type(self)(sl.start, self.string[sl.local_slice])
 
     @classmethod
-    def example(cls, start, size):
+    def example(cls, start, stop):
         basis = pkg_resources.resource_stream(
             "fakelargefile", "GPLv3.txt").read()
-        size = parse_size(size)
+        start = parse_unit(start)
+        stop = parse_unit(stop)
+        size = stop - start
         basis = basis * (size // len(basis) + 1)
         return cls(start, basis[:size])
 

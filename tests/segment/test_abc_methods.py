@@ -38,7 +38,7 @@ def test_segment_types():
 def test_index_implementation():
     for segment_type in segment_types:
         log.debug(segment_type)
-        segment = segment_type.example(start=3, size=10)
+        segment = segment_type.example(start=3, stop=13)
         content = str(segment)
         assert segment.index(content[0]) == segment.start
         assert segment.index(content) == segment.start
@@ -60,7 +60,7 @@ def test_index_implementation():
 def test_copy_implementation():
     for segment_type in segment_types:
         log.debug(segment_type)
-        segment = segment_type.example(start=3, size=10)
+        segment = segment_type.example(start=3, stop=13)
         cp = segment.copy()
         assert cp.start == segment.start
         assert cp.stop == segment.stop
@@ -76,7 +76,7 @@ def test_copy_implementation():
 def test_substring_implementation():
     for segment_type in segment_types:
         log.debug(segment_type)
-        segment = segment_type.example(start=3, size=10)
+        segment = segment_type.example(start=3, stop=13)
         content = str(segment)
         assert segment.substring(3, 3) == ""
         assert segment.substring(3, 10) == content[:7]

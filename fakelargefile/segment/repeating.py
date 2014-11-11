@@ -33,38 +33,37 @@ log = logging.getLogger(__name__)
 
 @register_segment
 class RepeatingSegment(AbstractSegment):
-    def __init__(self, start, size, string):
+    def __init__(self, start, stop, string):
         if len(string) == 1:
             log.warning(
                 "It's more efficient to use HomogenousSegment instead of "
                 "RepeatingSegment when the string to repeat is only one "
                 "byte.")
-        super(RepeatingSegment, self).__init__(start, size)
+        super(RepeatingSegment, self).__init__(start, stop)
         self.string = string
         # For speedy wrapping operations
         self.string_thrice = string * 3
 
     def subsegment(self, start, stop):
-        # TODO: make init args start, stop instead of start, size
         sl = Slice(self, start, stop)
         start_at = sl.local_start % len(self.string)
         string = self.string[start_at:] + self.string[:start_at]
         new_string_length = min(sl.size, len(self.string))
         if new_string_length < len(self.string):
-            return type(self)(sl.start, sl.size, string[:new_string_length])
+            return type(self)(sl.start, sl.stop, string[:new_string_length])
         else:
-            return type(self)(sl.start, sl.size, string[:new_string_length])
+            return type(self)(sl.start, sl.stop, string[:new_string_length])
 
     @classmethod
-    def example(cls, start, size):
+    def example(cls, start, stop):
         string = pkg_resources.resource_stream(
             "fakelargefile", "GPLv3.txt").read()
-        return cls(start=start, size=size, string=string)
+        return cls(start=start, stop=stop, string=string)
 
     def copy(self, start=None):
         if start is None:
             start = self.start
-        return type(self)(start, self.size, self.string)
+        return type(self)(start, start + self.size, self.string)
 
     def index(self, string, start=None, stop=None, end_pos=False):
         sl = Slice(self, start, stop)

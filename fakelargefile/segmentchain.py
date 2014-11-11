@@ -76,7 +76,7 @@ class SegmentChain(object):
         be raised instead.
         """
         if self.fill_gaps:
-            return RepeatingSegment(start, stop - start, self.fill_gaps)
+            return RepeatingSegment(start, stop, self.fill_gaps)
         else:
             raise ValueError("That segment is not contiguous with the rest.")
 
@@ -248,6 +248,7 @@ class SegmentChain(object):
             string.
 
         """
+        # TODO: Use Slice
         if return_deleted:
             ret = self[start:stop]
         else:
@@ -397,6 +398,7 @@ class SegmentChain(object):
         Border conditions are handled in the same way as when slicing a
         regular string.
         """
+        # TODO: Use Slice?
         start, stop, step = slice_.indices(self.size)
         # check if step moves in the wrong direction
         if (stop - start) * step < 0:

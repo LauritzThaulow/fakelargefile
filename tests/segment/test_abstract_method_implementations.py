@@ -33,7 +33,7 @@ log = logging.getLogger(__name__)
 
 def test_common_segment_example():
     for segment_type in segment_types:
-        segment = segment_type.example(start=7, size=42)
+        segment = segment_type.example(start=7, stop=49)
         assert isinstance(segment, segment_type)
         content = str(segment)
         assert len(content) == 42
@@ -42,7 +42,7 @@ def test_common_segment_example():
 
 def test_immutable():
     for segment_type in segment_types:
-        segment = segment_type.example(start=7, size=42)
+        segment = segment_type.example(start=7, stop=49)
         for attr in ("start", "stop", "size"):
             try:
                 setattr(segment, attr, 3)
@@ -54,18 +54,19 @@ def test_immutable():
 
 def test_size_as_si_prefix_string():
     for segment_type in segment_types:
-        segment = segment_type.example(start=7, size="1k")
-        assert segment.size == 1024
-        segment = segment_type.example(start=3, size="0.31254M")
-        assert segment.size == int(1024 * 1024 * 0.31254)
-        segment = segment_type.example(start=0, size="0.003G")
-        assert segment.size == int(0.003 * 1024 * 1024 * 1024)
+        segment = segment_type.example(start=7, stop="1k")
+        assert segment.size == 1024 - 7
+        segment = segment_type.example(start=3, stop="0.31254M")
+        assert segment.size == int(1024 * 1024 * 0.31254) - 3
+        segment = segment_type.example(start="0.007M", stop="0.003G")
+        assert segment.size == \
+            int(0.003 * 1024 * 1024 * 1024) - int(0.007 * 1024 * 1024)
 
 
 def test_intersects():
     for segment_type in segment_types:
         log.debug(segment_type)
-        segment = segment_type.example(start=3, size=10)
+        segment = segment_type.example(start=3, stop=13)
         assert segment.intersects(0, 1) == False
         assert segment.intersects(1, 3) == False
         assert segment.intersects(2, 4) == True
@@ -81,7 +82,7 @@ def test_intersects():
 
 def test_cut_from_start():
     for segment_type in segment_types:
-        segment = segment_type.example(start=3, size=42)
+        segment = segment_type.example(start=3, stop=45)
         content = str(segment)
         result = segment.cut(start=1, stop=8)
         assert len(result) == 1
@@ -94,7 +95,7 @@ def test_cut_from_start():
 
 def test_cut_to_end():
     for segment_type in segment_types:
-        segment = segment_type.example(start=8, size=37)
+        segment = segment_type.example(start=8, stop=45)
         content = str(segment)
         result = segment.cut(start=40, stop=1000000)
         assert len(result) == 1
@@ -107,7 +108,7 @@ def test_cut_to_end():
 
 def test_cut_from_middle():
     for segment_type in segment_types:
-        segment = segment_type.example(start=8, size=32)
+        segment = segment_type.example(start=8, stop=40)
         content = str(segment)
         result = segment.cut(start=18, stop=26)
         assert len(result) == 2
@@ -124,7 +125,7 @@ def test_cut_from_middle():
 
 def test_cut_disjunct():
     for segment_type in segment_types:
-        segment = segment_type.example(start=8, size=32)
+        segment = segment_type.example(start=8, stop=40)
         for start, stop in ((1, 7), (1, 8), (40, 100), (41, 293), (15, 12)):
             log.debug("Trying to intersect {}->{} with {}->{}".format(
                 start, stop, 8, 40))
@@ -138,7 +139,7 @@ def test_cut_disjunct():
 
 def test_cut_in_half():
     for segment_type in segment_types:
-        segment = segment_type.example(start=8, size=32)
+        segment = segment_type.example(start=8, stop=40)
         content = str(segment)
         result = segment.cut(start=11, stop=11)
         assert len(result) == 2
@@ -147,7 +148,6 @@ def test_cut_in_half():
         assert len(first) == len(str(first)) == 3
         assert first.start == 8
         assert first.stop == 11
-        print repr(content), repr(str(last))
         assert str(last) == content[3:]
         assert len(last) == len(str(last)) == 29
         assert last.start == 11
@@ -157,7 +157,7 @@ def test_cut_in_half():
 def test_cut_at():
     for segment_type in segment_types:
         log.debug(segment_type)
-        segment = segment_type.example(start=3, size=10)
+        segment = segment_type.example(start=3, stop=13)
         segment.subsegment = Mock()
         segment.cut_at(5)
         assert segment.subsegment.call_args_list == [
@@ -174,4 +174,4 @@ def test_repr():
     for segment_type in segment_types:
         log.debug(segment_type)
         fasit = "{}(start={}, stop={})".format(segment_type.__name__, 3, 13)
-        assert repr(segment_type.example(start=3, size=10)) == fasit
+        assert repr(segment_type.example(start=3, stop=13)) == fasit

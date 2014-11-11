@@ -27,8 +27,8 @@ from fakelargefile.tools import Slice
 
 @register_segment
 class HomogenousSegment(AbstractSegment):
-    def __init__(self, start, size, char):
-        super(HomogenousSegment, self).__init__(start, size)
+    def __init__(self, start, stop, char):
+        super(HomogenousSegment, self).__init__(start, stop)
         if not (isinstance(char, basestring) and len(char) == 1):
             raise ValueError(
                 "Argument char must be a single byte, not {!r}.".format(char))
@@ -36,16 +36,16 @@ class HomogenousSegment(AbstractSegment):
 
     def subsegment(self, start, stop):
         sl = Slice(self, start, stop)
-        return type(self)(sl.start, sl.size, self.char)
+        return type(self)(sl.start, sl.stop, self.char)
 
     @classmethod
-    def example(cls, start, size):
-        return cls(start=start, size=size, char="\x00")
+    def example(cls, start, stop):
+        return cls(start=start, stop=stop, char="\x00")
 
     def copy(self, start=None):
         if start is None:
             start = self.start
-        return type(self)(start, self.size, self.char)
+        return type(self)(start, start + self.size, self.char)
 
     def index(self, string, start=None, stop=None, end_pos=False):
         # for there to be any match, string must be homogenous too

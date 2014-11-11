@@ -30,7 +30,7 @@ log = logging.getLogger(__name__)
 
 
 def test_HomogenousSegment():
-    hs = HomogenousSegment(start=3, size=8, char="\x00")
+    hs = HomogenousSegment(start=3, stop=11, char="\x00")
     assert hs.start == 3
     assert hs.stop == 11
     assert hs.size == 8
@@ -48,7 +48,7 @@ def test_HomogenousSegment():
         else:
             assert False
     try:
-        HomogenousSegment(start=0, size=8, char="aa")
+        HomogenousSegment(start=0, stop=8, char="aa")
     except ValueError:
         assert True
     else:

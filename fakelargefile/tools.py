@@ -53,17 +53,17 @@ SI_PREFIX_DICT = {
     "T": 1024 ** 4}
 
 
-def parse_size(size):
+def parse_unit(unit):
     """
-    Parse size strings like "10G" or "1.5k" into exact number of bytes.
+    Parse unit strings like "10G" or "1.5k" into exact number of bytes.
 
     If size is an int, simply return it.
     """
-    if isinstance(size, basestring):
-        value, si_prefix = float(size[:-1]), size[-1:]
+    if isinstance(unit, basestring):
+        value, si_prefix = float(unit[:-1]), unit[-1:]
         return int(SI_PREFIX_DICT[si_prefix] * value)
     else:
-        return size
+        return unit
 
 
 class Slice(object):

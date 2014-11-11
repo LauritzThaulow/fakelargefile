@@ -25,7 +25,7 @@ COPYING = """\
 from abc import ABCMeta, abstractmethod
 
 from fakelargefile.tools import (
-    abstractclassmethod, register_machinery, parse_size, Slice)
+    abstractclassmethod, register_machinery, parse_unit, Slice)
 
 
 register_segment, segment_types = register_machinery()
@@ -35,10 +35,10 @@ class AbstractSegment(object):
 
     __metaclass__ = ABCMeta
 
-    def __init__(self, start, size):
-        self._start = start
-        self._size = parse_size(size)
-        self._stop = start + self._size
+    def __init__(self, start, stop):
+        self._start = parse_unit(start)
+        self._stop = parse_unit(stop)
+        self._size = self._stop - self._start
 
     @property
     def start(self):
@@ -50,7 +50,7 @@ class AbstractSegment(object):
     @property
     def size(self):
         """
-        Return the size of this segment in bytes.
+        Return the size of this segmflfent in bytes.
         """
         return self._size
 
@@ -147,7 +147,7 @@ class AbstractSegment(object):
         """
         The lenght of the segment in bytes.
         """
-        return self.size
+        return self._size
 
     def __repr__(self):
         """
@@ -173,9 +173,18 @@ class AbstractSegment(object):
         raise NotImplementedError()
 
     @abstractclassmethod
-    def example(cls, start, size):  # @NoSelf
+    def example(cls, start, stop):  # @NoSelf
         """
-        Return an example segment of this class with the given size and start.
+        Return an example segment of this class with the given start and stop.
+
+        :param start: The file position the segment should start at. May be
+            specified as an int or as a human readable string like "3M" for
+            3 * 1024 * 1024 bytes. See
+            :py:func:`fakelargefile.tools.parse_unit` for accepted syntax.
+        :type start: int or str
+        :param stop: The stop position, parsed the same way as the start
+            position.
+        :type stop: int or str
         """
         raise NotImplementedError()
 
