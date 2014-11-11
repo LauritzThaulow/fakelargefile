@@ -27,7 +27,7 @@ COPYING = """\
 import pkg_resources
 
 from fakelargefile.segment.abc import AbstractSegment, register_segment
-from fakelargefile.tools import parse_size
+from fakelargefile.tools import parse_size, Slice
 
 
 @register_segment
@@ -37,10 +37,9 @@ class LiteralSegment(AbstractSegment):
         self.string = string
 
     def subsegment(self, start, stop):
-        start, stop = self.parse_slice(start, stop, clamp=True)
-        local_start, local_stop = self.parse_slice(
-            start, stop, local=True, clamp=True)
-        return type(self)(start, self.string[local_start:local_stop])
+        sl = Slice(self, start, stop)
+        # TODO: class method accepting Slice instances?
+        return type(self)(sl.start, self.string[sl.local_slice])
 
     @classmethod
     def example(cls, start, size):
@@ -56,16 +55,15 @@ class LiteralSegment(AbstractSegment):
         return type(self)(start, self.string)
 
     def index(self, string, start=None, stop=None, end_pos=False):
-        local_start, local_stop = self.parse_slice(
-            start, stop, local=True, clamp=True)
-        index = self.string.index(string, local_start, local_stop)
+        sl = Slice(self, start, stop)
+        index = self.string.index(string, sl.local_start, sl.local_stop)
         if end_pos:
             index += len(string)
         return self.start + index
 
     def substring(self, start, stop):
-        local_start, local_stop = self.parse_slice(start, stop, local=True)
-        return self.string[local_start:local_stop]
+        sl = Slice(self, start, stop, clamp=False)
+        return self.string[sl.local_slice]
 
     def __str__(self):
         return self.string

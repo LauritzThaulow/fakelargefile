@@ -21,29 +21,39 @@ COPYING = """\
     """
 
 
+import logging
+
 from fakelargefile.segment.abc import AbstractSegment, register_segment
+from fakelargefile.tools import Slice
 import pkg_resources
+
+
+log = logging.getLogger(__name__)
 
 
 @register_segment
 class RepeatingSegment(AbstractSegment):
     def __init__(self, start, size, string):
+        if len(string) == 1:
+            log.warning(
+                "It's more efficient to use HomogenousSegment instead of "
+                "RepeatingSegment when the string to repeat is only one "
+                "byte.")
         super(RepeatingSegment, self).__init__(start, size)
         self.string = string
         # For speedy wrapping operations
         self.string_thrice = string * 3
 
     def subsegment(self, start, stop):
-        # TODO: make parse_slice a class with local and absolute attributes
-        # TODO: make init take start, stop instead of start, size
-        start, stop = self.parse_slice(start, stop, clamp=True)
-        start_at = (start - self.start) % len(self.string)
+        # TODO: make init args start, stop instead of start, size
+        sl = Slice(self, start, stop)
+        start_at = sl.local_start % len(self.string)
         string = self.string[start_at:] + self.string[:start_at]
-        new_string_length = min(stop - start, len(self.string))
+        new_string_length = min(sl.size, len(self.string))
         if new_string_length < len(self.string):
-            return type(self)(start, stop - start, string[:new_string_length])
+            return type(self)(sl.start, sl.size, string[:new_string_length])
         else:
-            return type(self)(start, stop - start, string[:new_string_length])
+            return type(self)(sl.start, sl.size, string[:new_string_length])
 
     @classmethod
     def example(cls, start, size):
@@ -57,11 +67,11 @@ class RepeatingSegment(AbstractSegment):
         return type(self)(start, self.size, self.string)
 
     def index(self, string, start=None, stop=None, end_pos=False):
-        start, stop = self.parse_slice(start, stop, local=True, clamp=True)
-        in_string_start = start % len(self.string)
-        to_add = start - in_string_start
-        assert to_add + in_string_start == start
-        length = min(stop - start, len(self.string) + len(string))
+        sl = Slice(self, start, stop)
+        in_string_start = sl.local_start % len(self.string)
+        to_add = sl.local_start - in_string_start
+        assert to_add + in_string_start == sl.local_start
+        length = min(sl.size, len(self.string) + len(string))
         index = self.string_thrice.index(
             string, in_string_start, in_string_start + length)
         if end_pos:
@@ -69,16 +79,14 @@ class RepeatingSegment(AbstractSegment):
         return self.start + to_add + index
 
     def substring(self, start, stop):
-        start, stop = self.parse_slice(start, stop, local=True)
-        length = stop - start
+        sl = Slice(self, start, stop, clamp=False)
         rep_size = len(self.string)
-        modulus_start = start % rep_size
-        modulus_start_plus_size = modulus_start + length
-        if length < 2 * rep_size:
-            return self.string_thrice[modulus_start:modulus_start_plus_size]
+        modulus_start = sl.local_start % rep_size
+        if sl.size < 2 * rep_size:
+            return self.string_thrice[modulus_start:modulus_start + sl.size]
         head = self.string[modulus_start:]
-        tail = self.string[:stop % rep_size]
-        size_multiple = length - len(head) - len(tail)
+        tail = self.string[:sl.local_stop % rep_size]
+        size_multiple = sl.size - len(head) - len(tail)
         assert size_multiple % rep_size == 0
         whole_lengths = size_multiple // rep_size
         return "".join([head, self.string * whole_lengths, tail])

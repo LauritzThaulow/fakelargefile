@@ -22,6 +22,7 @@ COPYING = """\
 
 
 from fakelargefile.segment.abc import AbstractSegment, register_segment
+from fakelargefile.tools import Slice
 
 
 @register_segment
@@ -34,8 +35,8 @@ class HomogenousSegment(AbstractSegment):
         self.char = char
 
     def subsegment(self, start, stop):
-        start, stop = self.parse_slice(start, stop, clamp=True)
-        return type(self)(start, stop - start, self.char)
+        sl = Slice(self, start, stop)
+        return type(self)(sl.start, sl.size, self.char)
 
     @classmethod
     def example(cls, start, size):
@@ -47,21 +48,23 @@ class HomogenousSegment(AbstractSegment):
         return type(self)(start, self.size, self.char)
 
     def index(self, string, start=None, stop=None, end_pos=False):
+        # for there to be any match, string must be homogenous too
         if len(set(string)) > 1:
             raise ValueError()
+        # and it must use the same character
         if string and string[0] != self.char:
             raise ValueError()
-        start, stop = self.parse_slice(start, stop, clamp=True)
-        if stop - start < len(string):
+        sl = Slice(self, start, stop)
+        if sl.size < len(string):
             raise ValueError()
         if end_pos:
-            return start + len(string)
+            return sl.start + len(string)
         else:
-            return start
+            return sl.start
 
     def substring(self, start=None, stop=None):
-        start, stop = self.parse_slice(start, stop)
-        return self.char * (stop - start)
+        sl = Slice(self, start, stop, clamp=False)
+        return self.char * sl.size
 
     def __str__(self):
         return self.char * self.size

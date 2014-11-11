@@ -64,3 +64,58 @@ def parse_size(size):
         return int(SI_PREFIX_DICT[si_prefix] * value)
     else:
         return size
+
+
+class Slice(object):
+    """
+    Calculate interesting attributes using the given segment slice.
+    """
+    def __init__(self, segment, start, stop, clamp=True):
+        """
+        Initialize a Slice instance.
+
+        :param start: The start index of the slice, relative to the start of
+            the file.
+        :type start: int or NoneType
+        :param stop: The global stop index of the slice, relative to the start
+            of the file.
+        :type stop: int or NoneType
+        :param bool clamp: If True, which is the default, bring out of bounds
+            values for start and stop to the closest possible value inside
+            the bounds. If False, a ValueError is raised for out of bounds
+            indices.
+
+        """
+        self.segment = segment
+        self.clamp = clamp
+        self._parse(start, stop)
+
+    def _parse(self, start, stop):
+        """
+        Do the actual parsing of the slice.
+        """
+        seg = self.segment
+        if start is None:
+            start = seg.start
+        if stop is None:
+            stop = seg.stop
+        if not (seg.start <= start <= stop <= seg.stop):
+            if self.clamp:
+                if stop < start:
+                    raise ValueError(
+                        "The start pos must be before the stop pos.")
+                start = max(seg.start, start)
+                stop = min(seg.stop, stop)
+            else:
+                raise ValueError((
+                    "Arguments start={} and stop={} do not fulfill these "
+                    "constraint:\n {} == self.start <= start <= stop <= "
+                    "self.stop == {}").format(
+                        start, stop, seg.start, seg.stop))
+        self.start = start
+        self.stop = stop
+        self.local_start = start - seg.start
+        self.local_stop = stop - seg.start
+        self.size = stop - start
+        self.slice = slice(start, stop)
+        self.local_slice = slice(self.local_start, self.local_stop)

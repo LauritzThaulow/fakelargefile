@@ -62,28 +62,6 @@ def test_size_as_si_prefix_string():
         assert segment.size == int(0.003 * 1024 * 1024 * 1024)
 
 
-def test_parse_slice():
-    for segment_type in segment_types:
-        seg = segment_type.example(start=7, size=10)
-        assert seg.parse_slice(None, None) == (7, 17)
-        assert seg.parse_slice(None, 15) == (7, 15)
-        assert seg.parse_slice(10, None) == (10, 17)
-        assert seg.parse_slice(11, 12) == (11, 12)
-        assert seg.parse_slice(7, 17) == (7, 17)
-        assert seg.parse_slice(None, None, local=True) == (0, 10)
-        assert seg.parse_slice(None, 15, local=True) == (0, 8)
-        assert seg.parse_slice(10, None, local=True) == (3, 10)
-        assert seg.parse_slice(11, 12, local=True) == (4, 5)
-        assert seg.parse_slice(7, 17, local=True) == (0, 10)
-        for tpl in ((6, 17), (7, 18), (15, 10)):
-            try:
-                seg.parse_slice(*tpl)
-            except ValueError:
-                assert True
-            else:
-                assert False
-
-
 def test_intersects():
     for segment_type in segment_types:
         log.debug(segment_type)

@@ -25,7 +25,7 @@ COPYING = """\
 from abc import ABCMeta, abstractmethod
 
 from fakelargefile.tools import (
-    abstractclassmethod, register_machinery, parse_size)
+    abstractclassmethod, register_machinery, parse_size, Slice)
 
 
 register_segment, segment_types = register_machinery()
@@ -61,43 +61,6 @@ class AbstractSegment(object):
         """
         return self._stop
 
-    def parse_slice(self, start, stop, local=False, clamp=False):
-        """
-        Convert start and stop slice attributes to actual indices.
-
-        :param int start: If None, set to self.start.
-        :param int stop: If None, set to self.stop.
-        :param bool local: If True, return indices relative to the start
-            of the segment, instead of the default which is relative to the
-            start of the file.
-        :param bool clamp: If False, which is the default, a ValueError is
-            raised for out of bounds indices. If True, the closest valid
-            value is returned.
-        :returns: A 2-tuple (start, stop) of indices.
-
-        """
-        if start is None:
-            start = self.start
-        if stop is None:
-            stop = self.stop
-        if not (self.start <= start <= stop <= self.stop):
-            if clamp:
-                if stop < start:
-                    raise ValueError(
-                        "The start pos must be before the stop pos.")
-                start = max(self.start, start)
-                stop = min(self.stop, stop)
-            else:
-                raise ValueError((
-                    "Arguments start={} and stop={} do not fulfill these "
-                    "constraint:\n {} == self.start <= start <= stop <= "
-                    "self.stop == {}").format(
-                        start, stop, self.start, self.stop))
-        if local:
-            start -= self.start
-            stop -= self.start
-        return start, stop
-
     def intersects(self, start, stop):
         """
         Return True if some part of the interval start-stop is inside self.
@@ -129,12 +92,12 @@ class AbstractSegment(object):
             raise ValueError(
                 "Cant cut from {} to {} on segment from {} to {}".format(
                     start, stop, self.start, self.stop))
-        start, stop = self.parse_slice(start, stop, clamp=True)
+        sl = Slice(self, start, stop)
         result = []
-        if self.start < start:
-            result.append(self.subsegment(self.start, start))
-        if stop < self.stop:
-            result.append(self.subsegment(stop, self.stop))
+        if self.start < sl.start:
+            result.append(self.subsegment(self.start, sl.start))
+        if sl.stop < self.stop:
+            result.append(self.subsegment(sl.stop, self.stop))
         return result
 
     def cut_at(self, index):
