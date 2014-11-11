@@ -10,8 +10,8 @@ the works. Please tell me what I can do to improve this package!*
 
 ### Intro
 
-A FakeLargeFile is a file-like object that simulates a very large file while
-requiring very little memory and being smart about operations.
+A `FakeLargeFile` instance is a file-like object that simulates a very large
+file while requiring very little memory and being smart about operations.
 
 ```python
 >>> from fakelargefile import FakeLargeFile, RepeatingSegment
@@ -22,10 +22,13 @@ requiring very little memory and being smart about operations.
 'spam spam '
 ```
 
-Using segments you can build your fake file layer by layer, using segment 
-types like literal and repeating segments. But its real powers emerge when
-you go beyond the standard file-like methods:
+Using segments you can build your fake file layer by layer by using the
+`overwrite` method, or from beginning to end by using the `append` method,
+whatever suits your needs. Your building blocks are segment types like 
+literal and repeating segments, or you can implement your own.
 
+The real powers of `FakeLargeFile` emerge when you go beyond the standard 
+file-like methods:
 
 ```python
 >>> flf.insert_literal(start=1000000005, string="ham ")
@@ -40,12 +43,17 @@ you go beyond the standard file-like methods:
 'spam spam, sausage, eggs and spam ham spam '
 ```
 
-All these operations are smart about how they work, and how fast they are
-depend on the complexity and number of the segments, not on how many bytes
-that seemingly need moving or searching.
+All these operations are smart. How fast they are depend on the number of
+segments they work on and their underlying data, not on how many bytes that
+seemingly need moving or searching. All the above code examples take about
+0.3 milliseconds to execute, not counting the import statements.
 
-Indexing into the fakelargefile, and various other operations, return real 
-python strings, so there's built-in protection against accidently creating
-very large strings. If the memory limit would be broken by some operation,
-a MemoryLimitError exception will be raised before it is even attempted.
+Operations like `flf[:43]` return real python strings. You might worry about
+accidently executing `flf[:100000000000]`. I've got you covered, there's 
+built-in protection against accidently creating very large strings. If the 
+memory required by some operation is above a certain limit (which you can
+change yourself), a MemoryLimitError exception will be raised before the
+string is actually built.
+
+
 
