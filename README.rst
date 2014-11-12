@@ -46,6 +46,14 @@ change yourself), a ``MemoryLimitError`` exception will be raised before the
 string is actually built.
 
 
+Documentation
+-------------
+
+Documentation is still a work in progress, but you can see how far it's come
+`at readthedocs.org 
+<http://fakelargefile.readthedocs.org/en/latest/index.html#/>`_
+
+
 
 Developers note
 ---------------
