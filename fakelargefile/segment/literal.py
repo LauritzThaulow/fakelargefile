@@ -32,7 +32,17 @@ from fakelargefile.tools import parse_unit, Slice
 
 @register_segment
 class LiteralSegment(AbstractSegment):
+    """
+    A segment containing exactly a given string.
+    """
     def __init__(self, start, string):
+        """
+        Initialize a LiteralSegment instance.
+
+        :param int start: The start pos of the segment.
+        :param str string: The string this segment should contain.
+
+        """
         start = parse_unit(start)
         super(LiteralSegment, self).__init__(start, start + len(string))
         self.string = string

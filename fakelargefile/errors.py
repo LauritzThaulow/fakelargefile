@@ -21,13 +21,17 @@ COPYING = """\
     """
 
 
-class NotFoundError(Exception):
-    pass
-
-
 class NoContainingSegment(Exception):
     pass
 
 
 class MemoryLimitError(Exception):
+    """
+    Raised when an operation would require excessive amounts of memory.
+
+    If an operation, like for example creating a string out of a
+    FakeLargeFile, would require more memory than the return value of
+    :py:func:`fakelargefile.config.get_memory_limit`, then this exception
+    is raised.
+    """
     pass

@@ -3,15 +3,21 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to FakeLargeFile's documentation!
-=========================================
+Welcome the fakelargefile docs!
+===============================
 
 Contents:
 
 .. toctree::
    :maxdepth: 2
-
-
+   
+   fakelargefile.rst
+   segmentchain.rst
+   segment.rst
+   config.rst
+   errors.rst
+   tools.rst
+   
 
 Indices and tables
 ==================

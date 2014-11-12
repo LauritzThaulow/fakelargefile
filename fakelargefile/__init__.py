@@ -23,12 +23,12 @@ COPYING = """\
     """
 
 from fakelargefile.errors import (
-    NotFoundError, NoContainingSegment, MemoryLimitError)
+    NoContainingSegment, MemoryLimitError)
 from fakelargefile.fakelargefile import FakeLargeFile
 from fakelargefile.segment import (
     LiteralSegment, RepeatingSegment, HomogenousSegment)
 from fakelargefile.config import get_memory_limit, set_memory_limit
 
 __all__ = [
-    "FakeLargeFile", "NoContainingSegment", "NotFoundError", "LiteralSegment",
+    "FakeLargeFile", "NoContainingSegment", "LiteralSegment",
     "RepeatingSegment", "HomogenousSegment"]

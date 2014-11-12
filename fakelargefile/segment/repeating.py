@@ -33,7 +33,17 @@ log = logging.getLogger(__name__)
 
 @register_segment
 class RepeatingSegment(AbstractSegment):
+    """
+    A segment consisting of a repeated string.
+    """
     def __init__(self, start, stop, string):
+        """
+        Initialize a RepeatingSegment instance.
+
+        :param int start: The start position of the segment.
+        :param int stop: The stop position of the segment.
+        :param str string: The string to repeat inside the segment.
+        """
         if len(string) == 1:
             log.warning(
                 "It's more efficient to use HomogenousSegment instead of "

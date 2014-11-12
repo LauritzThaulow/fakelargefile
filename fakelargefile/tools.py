@@ -21,6 +21,9 @@ COPYING = """\
     """
 
 
+__all__ = ["parse_unit", "Slice"]
+
+
 class abstractclassmethod(classmethod):
 
     __isabstractmethod__ = True
@@ -68,7 +71,29 @@ def parse_unit(unit):
 
 class Slice(object):
     """
-    Calculate interesting attributes using the given segment slice.
+    Calculate useful attributes about a slice.
+
+    The slice may be specified explicitly or implicitly. Both the start and
+    stop arguments may be None to indicate that they're the minimum or
+    maximum value, respectively.
+
+    The actual start and stop values are then calculated and stored in the
+    instance attributes, along with some derived values:
+
+    ===========    =====================
+    Attribute      Description
+    ===========    =====================
+    start          The start position relative to the start of the file.
+    stop           The stop position relative to the start of the file.
+    local_start    The start position relative to the given minimum.
+    local_stop     The stop position relative to the given minimum.
+    size           The value of start - stop.
+    slice          An instance of the built-in slice type, slice(start, stop).
+    local_slice    Same as above, but using the local start and stop.
+    minimum        The minimum given as an argument.
+    maximum        The maximum given as an argument.
+    ===========    =====================
+
     """
     def __init__(self, start, stop, minimum, maximum, clamp=True):
         """

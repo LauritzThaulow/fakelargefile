@@ -32,10 +32,25 @@ register_segment, segment_types = register_machinery()
 
 
 class AbstractSegment(object):
+    """
+    Abstract Base Class for all segment types.
+
+    Segment types are immutable by convention and usage. It *is* possible
+    to change the attributes of a segment, but please don't.
+
+    To build your own segment type, simply inherit from this class and
+    override the abstract methods.
+    """
 
     __metaclass__ = ABCMeta
 
     def __init__(self, start, stop):
+        """
+        Initialize attributes common to all segment types.
+
+        This method permanently sets the values for the start, stop and size
+        read-only properties.
+        """
         self._start = parse_unit(start)
         self._stop = parse_unit(stop)
         self._size = self._stop - self._start
@@ -48,27 +63,28 @@ class AbstractSegment(object):
         return self._start
 
     @property
-    def size(self):
-        """
-        Return the size of this segmflfent in bytes.
-        """
-        return self._size
-
-    @property
     def stop(self):
         """
         Return the positon of the byte after the last byte of this segment.
         """
         return self._stop
 
+    @property
+    def size(self):
+        """
+        Return the size of this segmflfent in bytes.
+        """
+        return self._size
+
     def intersects(self, start, stop):
         """
-        Return True if some part of the interval start-stop is inside self.
+        Is part of the start-stop interval inside this segment?
 
-        Returns True even if start-stop is of length 0, *if* it is inside
-        self.
+        Returns True even if the start-stop interval is of length 0, as long
+        as it is *inside* this segment.
 
-        Returns False if start-stop is merely adjacent.
+        Returns False if the start-stop interval is merely adjacent to this
+        segment.
         """
         if self.start < stop < self.stop:
             return True
@@ -122,6 +138,7 @@ class AbstractSegment(object):
 
         The final line of the segment may not end in a newline.
         """
+        # TODO: remove
         try:
             stop_index = self.index("\n", pos, end_pos=True)
         except ValueError:
@@ -161,6 +178,11 @@ class AbstractSegment(object):
         """
         Return a segment with the same data as this segment in the interval.
 
+        .. note::
+
+           This is an abstract method, to be implemented separately in each
+           subclass.
+
         :param start: The start position of the returned segment. Use
             self.start if None. If less than self.start, use self.start.
         :type start: int or NoneType
@@ -176,6 +198,11 @@ class AbstractSegment(object):
     def example(cls, start, stop):  # @NoSelf
         """
         Return an example segment of this class with the given start and stop.
+
+        .. note::
+
+           This is an abstract method, to be implemented separately in each
+           subclass.
 
         :param start: The file position the segment should start at. May be
             specified as an int or as a human readable string like "3M" for
@@ -193,9 +220,10 @@ class AbstractSegment(object):
         """
         Return a copy of this segment, possibly shifted to start elsewhere.
 
-        This should always be true, no matter the value of ``x``::
+        .. note::
 
-            str(self) == str(self.copy(start=x))
+           This is an abstract method, to be implemented separately in each
+           subclass.
 
         """
         raise NotImplementedError()
@@ -204,6 +232,11 @@ class AbstractSegment(object):
     def index(self, string, start=None, stop=None, end_pos=False):
         """
         Return the index of the next occurence of string.
+
+        .. note::
+
+           This is an abstract method, to be implemented separately in each
+           subclass.
 
         :param str string: The string to search for
         :param int start: The index to start at, self.start by default. If
@@ -222,6 +255,13 @@ class AbstractSegment(object):
         """
         The substring from start to stop.
 
+        .. note::
+
+           This is an abstract method, to be implemented separately in each
+           subclass. It should raise
+           :py:class:`fakelargefile.errors.MemoryLimitError` if the resulting
+           string will require memory beyond the set memory limit.
+
         Valid values for start and stop are such that::
 
             self.start <= start <= stop <= self.stop
@@ -236,9 +276,12 @@ class AbstractSegment(object):
         """
         Return the entire object as a string.
 
-        .. warning: Actually builds a string representation of something that
-           may be extremely large. Doesn't care at all about memory
-           consumption. Should only be used when you know this is not a
-           problem.
+        .. note::
+
+           This is an abstract method, to be implemented separately in each
+           subclass. It should raise
+           :py:class:`fakelargefile.errors.MemoryLimitError` if the resulting
+           string will require memory beyond the set memory limit.
+
         """
         raise NotImplementedError()

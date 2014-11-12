@@ -40,24 +40,28 @@ class FakeLargeFile(SegmentChain):
     The segments of a FakeLargeFile are always contiguous from the first
     to the last, and the first one always starts at 0.
 
-    Here's a table of the computational complexity of various FakeLargeFile
-    operations. Sibling methods like read() and readline() have the same
-    complexity.
+    Here's a table to give you an informal impression of the computational
+    complexity of various FakeLargeFile operations. The coefficients of the
+    terms are unspecified. Sibling methods like read(), readline() and
+    readlines() have the same complexity.
 
     - N is the *count* of segments following the start of an insert or delete
     - B is the number of bytes an operation works on
+    - S is the number of segments an operation works on or covers
     - M is the total number of segments.
 
-    Method      Big O
-    ======      ======
+    ==========  ===================
+    Method      Complexity
+    ==========  ===================
     seek()      O(1)
     tell()      O(1)
-    read()      O(B)
+    read()      O(log(M) + B)
     append()    O(1)
-    insert()    O(N)
-    delete()    O(N)
-    write()     O(B)
-    truncate()  O(1)
+    insert()    O(log(M) + N)
+    delete()    O(log(M) + (N - S))
+    write()     O(log(M) + S + 1)
+    truncate()  O(log(M) + 1)
+    ==========  ===================
 
     This means that FakeLargeFile is capable of feats that are very hard to
     do with normal files:

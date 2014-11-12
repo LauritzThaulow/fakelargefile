@@ -25,9 +25,19 @@ MEMORY_LIMIT = 1000000000
 
 
 def set_memory_limit(byte_count):
+    """
+    Set the memory limit.
+
+    If operations require more memory than this, a MemoryLimitError is raised.
+    """
     global MEMORY_LIMIT
     MEMORY_LIMIT = byte_count
 
 
 def get_memory_limit():
+    """
+    Get the current memory limit.
+
+    The default memory limit is 1GB
+    """
     return MEMORY_LIMIT

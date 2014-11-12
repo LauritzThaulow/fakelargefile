@@ -27,7 +27,18 @@ from fakelargefile.tools import Slice
 
 @register_segment
 class HomogenousSegment(AbstractSegment):
+    """
+    A segment consisting of a single repeated character.
+    """
     def __init__(self, start, stop, char):
+        """
+        Initialize a HomogenousSegment instance.
+
+        :param int start: Start pos of this segment.
+        :param int stop: Stop pos of this segment.
+        :param str char: A single-byte string.
+
+        """
         super(HomogenousSegment, self).__init__(start, stop)
         if not (isinstance(char, basestring) and len(char) == 1):
             raise ValueError(
