@@ -1,5 +1,7 @@
 .project
 .pydevproject
+.settings/
+build/
 fakelargefile.egg-info/
 .coverage
 cover/
