@@ -44,6 +44,8 @@ class AbstractSegment(object):
 
     __metaclass__ = ABCMeta
 
+    repr_sample_max_length = 32
+
     def __init__(self, start, stop):
         """
         Initialize attributes common to all segment types.
@@ -258,5 +260,15 @@ class AbstractSegment(object):
         """
         A nice string representation of this segment.
         """
-        return "{}(start={}, stop={})".format(
-            type(self).__name__, self.start, self.stop)
+        # Do a string slice of substring in case of "\x00" bytes, which take
+        # up 4 characters for every byte.
+        sample_size = self.repr_sample_max_length
+        sample_end_pos = min(self._stop, self._start + sample_size)
+        str_sample = repr(
+            self.substring(self._start, sample_end_pos)).strip("'")
+        if sample_size < len(str_sample) or len(str_sample) < self._size:
+            str_sample = "'{}'...".format(str_sample[:sample_size])
+        else:
+            str_sample = "'{}'".format(str_sample)
+        return "{}(start={}, stop={}, str={})".format(
+            type(self).__name__, self.start, self.stop, str_sample)

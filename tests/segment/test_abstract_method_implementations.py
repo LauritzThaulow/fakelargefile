@@ -173,5 +173,18 @@ def test_cut_at():
 def test_repr():
     for segment_type in segment_types:
         log.debug(segment_type)
-        fasit = "{}(start={}, stop={})".format(segment_type.__name__, 3, 13)
-        assert repr(segment_type.example(start=3, stop=13)) == fasit
+        seg = segment_type.example(start=3, stop=23)
+        sample_size = seg.repr_sample_max_length
+        seg_sample = repr(str(seg)).strip("'")
+        seg_sample = "'{}'{}".format(
+            seg_sample[:sample_size],
+            "..." if len(seg_sample) > sample_size else "")
+        fasit = "{}(start={}, stop={}, str={})".format(
+            segment_type.__name__, 3, 23, seg_sample)
+        assert repr(seg) == fasit
+
+        seg = segment_type.example(start=3, stop=5)
+        seg_sample = repr(str(seg))
+        fasit = "{}(start={}, stop={}, str={})".format(
+            segment_type.__name__, 3, 5, seg_sample)
+        assert repr(seg) == fasit
