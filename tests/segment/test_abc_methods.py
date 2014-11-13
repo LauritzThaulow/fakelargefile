@@ -82,3 +82,21 @@ def test_substring_implementation():
         assert segment.substring(3, 10) == content[:7]
         assert segment.substring(6, 7) == content[3]
         assert segment.substring(8, 13) == content[-5:]
+
+
+def test_size_zero_fails():
+    for segment_type in segment_types:
+        log.debug(segment_type)
+        try:
+            segment_type.example(start=3, stop=3)
+        except ValueError:
+            assert True
+        else:
+            assert False
+
+
+def test_size_zero_subsegment_is_None():
+    for segment_type in segment_types:
+        log.debug(segment_type)
+        segment = segment_type.example(start=3, stop=5)
+        assert segment.subsegment(start=4, stop=4) is None

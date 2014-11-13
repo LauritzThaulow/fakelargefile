@@ -61,3 +61,14 @@ def test_cut_in_middle():
     assert last.substring(start=39, stop=45) == "efghij"
     assert last.substring(start=45, stop=55) == "abcdefghij"
     assert last.copy(start=0).substring(start=2, stop=5) == "ghi"
+
+
+def test_empty_string_fails():
+    try:
+        RepeatingSegment(start=7, stop=49, string="")
+    except ValueError:
+        assert True
+    else:
+        assert False
+
+    

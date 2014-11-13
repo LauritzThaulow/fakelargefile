@@ -47,7 +47,10 @@ class HomogenousSegment(AbstractSegment):
 
     def subsegment(self, start, stop):
         sl = Slice(start, stop, self.start, self.stop)
-        return type(self)(sl.start, sl.stop, self.char)
+        if sl.size:
+            return type(self)(sl.start, sl.stop, self.char)
+        else:
+            return None
 
     @classmethod
     def example(cls, start, stop):

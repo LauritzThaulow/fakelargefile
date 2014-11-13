@@ -53,6 +53,8 @@ class RepeatingSegment(AbstractSegment):
 
     def subsegment(self, start, stop):
         sl = Slice(start, stop, self.start, self.stop)
+        if sl.size == 0:
+            return None
         start_at = sl.local_start % len(self.string)
         string = self.string[start_at:] + self.string[:start_at]
         new_string_length = min(sl.size, len(self.string))

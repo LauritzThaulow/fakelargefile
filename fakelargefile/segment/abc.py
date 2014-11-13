@@ -54,7 +54,8 @@ class AbstractSegment(object):
         self._start = parse_unit(start)
         self._stop = parse_unit(stop)
         self._size = self._stop - self._start
-        # TODO: ValueError on size == 0?
+        if self._size == 0:
+            raise ValueError("A segment must have a non-zero size")
 
     @property
     def start(self):
@@ -162,7 +163,8 @@ class AbstractSegment(object):
         :param stop: The stop position of the returned segment. Use self.stop
             if None. If greater than self.stop, use self.stop.
         :type stop: int or NoneType
-        :return: A segment containing the same string as the given segment.
+        :return: A segment containing the same string as the given segment,
+            or None if start == stop.
 
         """
         raise NotImplementedError()

@@ -53,6 +53,8 @@ class OverlapSearcher(object):
         """
         Add segment to one end and pop unneeded segments from the other end.
         """
+        if self.overlap_size == 0:
+            return
         overlap_start = segment.stop - self.overlap_size
         if segment.start <= overlap_start:
             self.clear()
@@ -76,16 +78,18 @@ class OverlapSearcher(object):
             indices of the start of the matches. If True, yield the indices
             of the first byte after each match.
 
-        This method combines the segments appended up to now with with
-        a next_segment given in the arguments, and then yields the indices
-        of all non-overlapping instances of the search string it finds in
-        this combined string.
+        This method combines the last bytes of the segments appended up to
+        now with with the first bytes of next_segment given in the arguments,
+        and then yields the indices of all non-overlapping instances of the
+        search string it finds in this combined string.
 
-        This method is guaranteed to only return matches which cross the
-        boundary between the previously appended segment and next_segment.
-        In other words, no matches wholly to the right *or* left of
-        segment.start will be yielded.
+        This method is guaranteed to *only* return matches which cross the
+        boundary between the end of the previously appended segments and the
+        start of next_segment. In other words, no matches wholly to the right
+        *or* left of next_segment.start will be yielded.
         """
+        if self.overlap_size == 0:
+            return
         if stop <= next_segment.start:
             raise ValueError(
                 "The stop argument should be larger than next_segment.start.")

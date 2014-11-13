@@ -49,7 +49,10 @@ class LiteralSegment(AbstractSegment):
 
     def subsegment(self, start, stop):
         sl = Slice(start, stop, self.start, self.stop)
-        return type(self)(sl.start, self.string[sl.local_slice])
+        if sl.size:
+            return type(self)(sl.start, self.string[sl.local_slice])
+        else:
+            return None
 
     @classmethod
     def example(cls, start, stop):
