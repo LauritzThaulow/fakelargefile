@@ -44,11 +44,8 @@ class RepeatingSegment(AbstractSegment):
         :param int stop: The stop position of the segment.
         :param str string: The string to repeat inside the segment.
         """
-        if len(string) == 1:
-            log.warning(
-                "It's more efficient to use HomogenousSegment instead of "
-                "RepeatingSegment when the string to repeat is only one "
-                "byte.")
+        if len(string) == 0:
+            raise ValueError("String must be non-empty.")
         super(RepeatingSegment, self).__init__(start, stop)
         self.string = string
         # For speedy wrapping operations

@@ -88,27 +88,27 @@ class FakeLargeFile(SegmentChain):
             `len(s) >= size` when size is given.
 
         """
-        line = []
         start_pos = self.pos
-        current_length = 0
-        for seg in self.segment_iter(self.pos):
-            while True:
-                line.append(seg.readline(self.pos))
-                self.pos += len(line[-1])
-                current_length = self.pos - start_pos
-                if 2 * current_length > get_memory_limit():
-                    raise MemoryLimitError((
-                        "Readline would result in memory consumption larger "
-                        "than the current memory limit, which is {}").format(
-                            get_memory_limit()))
-                if size is not None and current_length >= size:
-                    self.pos -= current_length - size
-                    return "".join(line)[:size]
-                if "\n" in line[-1]:
-                    return "".join(line)
-                else:
-                    break
-        return "".join(line)
+        if size is None:
+            max_end_pos = self.size
+        else:
+            if size in (0, 1):
+                self.pos += size
+                return self[self.pos - size:self.pos]
+            max_end_pos = self.pos + size
+        try:
+            end_pos = self.index("\n", start_pos, end_pos=True)
+        except ValueError:
+            end_pos = self.size
+        end_pos = min(end_pos, max_end_pos)
+        length = end_pos - start_pos
+        if get_memory_limit() < length:
+            raise MemoryLimitError((
+                "Readline would result in memory consumption larger "
+                "than the current memory limit, which is {}").format(
+                    get_memory_limit()))
+        self.pos = end_pos
+        return self[start_pos:end_pos]
 
     def readlines(self, sizehint=None):
         """

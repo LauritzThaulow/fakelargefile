@@ -72,7 +72,9 @@ def test_readline():
     assert flf.readline(0) == ""
     assert flf.readline(1) == "\n"
     assert flf.readline(1) == "1"
-    assert flf.tell() == 2
+    assert flf.readline() == "\n"
+    assert flf.readline(2) == "22"
+    assert flf.tell() == 5
 
 
 def test_readlines():

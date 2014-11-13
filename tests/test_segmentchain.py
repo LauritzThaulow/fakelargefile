@@ -112,7 +112,7 @@ def test_finditer():
 
 def test_finditer_across_segments():
     sc = SegmentChain()
-    string = "aafaffafffafffffafa"
+    string = "aafaffafffafffffafattteee"
     chunk = ""
     control = ""
     # Group consecutive stretches of equal characters in the same segment.

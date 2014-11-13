@@ -131,12 +131,19 @@ def takes_less_than(seconds):
 
 @contextmanager
 def raises_oom_error():
+    t = time.time()
     try:
         yield
     except MemoryLimitError:
         pass
     else:
         assert False, "Operation should have raised MemoryLimitError"
+    finally:
+        duration = time.time() - t
+        if duration > 0.1:
+            assert False, (
+                "Operation should take less than 0.1s, took {:.2f}s."
+                ).format(duration)
 
 
 def test_oom_protection():

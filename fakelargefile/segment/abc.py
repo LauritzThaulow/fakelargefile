@@ -54,6 +54,7 @@ class AbstractSegment(object):
         self._start = parse_unit(start)
         self._stop = parse_unit(stop)
         self._size = self._stop - self._start
+        # TODO: ValueError on size == 0?
 
     @property
     def start(self):
