@@ -49,13 +49,6 @@ def test_substring():
     assert rs.substring(7, 7 + 5 * 4) == "abcd" * 5
 
 
-def test_readline():
-    rs = RepeatingSegment(start=3, stop=336, string="abcd\nabcd")
-    assert rs.readline(3) == "abcd\n"
-    assert rs.readline(8) == "abcdabcd\n"
-    assert rs.readline(17) == "abcdabcd\n"
-
-
 def test_cut_in_middle():
     rs = RepeatingSegment(start=5, stop=510, string="abcdefghij")
     last = rs.cut(start=10, stop=15)[-1]

@@ -41,8 +41,3 @@ def test_LiteralSegment():
         assert True
     else:
         assert False
-    assert ls.readline(20) == "defghij"
-    ls = LiteralSegment(start=4, string="as\ndf\ngh\n")
-    lines = ls.readlines(5)
-    log.debug(lines)
-    assert lines == ["s\n", "df\n", "gh\n"]

@@ -133,34 +133,6 @@ class AbstractSegment(object):
                     self.start, self.stop, index))
         return self.subsegment(None, index), self.subsegment(index, None)
 
-    def readline(self, pos):
-        """
-        Return the line starting at pos and ending after the next newline.
-
-        The final line of the segment may not end in a newline.
-        """
-        # TODO: remove
-        try:
-            stop_index = self.index("\n", pos, end_pos=True)
-        except ValueError:
-            return self.substring(pos, None)
-        else:
-            return self.substring(pos, stop_index)
-
-    def readlines(self, pos):
-        """
-        Return a list of all the lines starting at pos until the segment ends.
-
-        The final line of the segment may not end in a newline.
-        """
-        ret = []
-        while True:
-            line = self.readline(pos)
-            pos += len(line)
-            ret.append(line)
-            if pos == self.stop:
-                return ret
-
     def __len__(self):
         """
         The lenght of the segment in bytes.
