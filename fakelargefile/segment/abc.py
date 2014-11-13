@@ -134,19 +134,6 @@ class AbstractSegment(object):
                     self.start, self.stop, index))
         return self.subsegment(None, index), self.subsegment(index, None)
 
-    def __len__(self):
-        """
-        The lenght of the segment in bytes.
-        """
-        return self._size
-
-    def __repr__(self):
-        """
-        A nice string representation of this segment.
-        """
-        return "{}(start={}, stop={})".format(
-            type(self).__name__, self.start, self.stop)
-
     @abstractmethod
     def subsegment(self, start, stop):
         """
@@ -260,3 +247,16 @@ class AbstractSegment(object):
 
         """
         raise NotImplementedError()
+
+    def __len__(self):
+        """
+        The lenght of the segment in bytes.
+        """
+        return self._size
+
+    def __repr__(self):
+        """
+        A nice string representation of this segment.
+        """
+        return "{}(start={}, stop={})".format(
+            type(self).__name__, self.start, self.stop)
