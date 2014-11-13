@@ -35,11 +35,44 @@ class AbstractSegment(object):
     """
     Abstract Base Class for all segment types.
 
-    Segment types are immutable by convention and usage. It *is* possible
-    to change the attributes of a segment, but please don't.
+    This class defines the interface for a segment by specifying the name
+    and signatures of some methods that each subclass must implement, and
+    by implementing some other methods directly. It also sets the attributes
+    common to all segment types. Those attributes are:
+
+    - ``self.start``: the index of the first byte of this segment
+    - ``self.stop``: the index of the first byte just past this segment
+    - ``self.size``: the size of this segment, ``self.stop - self.start``
+
+    These are the abstract methods that each subclass need to implement:
+
+    - ``__str__`` (with memory limit)
+    - ``substring`` (with memory limit)
+    - ``index``
+    - ``copy``
+    - ``subsegment``
+    - ``example`` (classmethod)
+
+    The below methods are implemented directly in this class. Many of them
+    call and depend on the abstract methods above for their functionality.
+
+    - ``__repr__`` (gives ``repr(segment)`` a nice value)
+    - ``__len__`` (makes ``len(segment) == segment.size``)
+    - ``cut``
+    - ``cut_at``
+    - ``intersects``
 
     To build your own segment type, simply inherit from this class and
     override the abstract methods.
+
+    .. warning::
+
+       Segment types are meant to be immutable. Since we're all consenting
+       adults here, the attributes of segment types are not protected from
+       modification, beyond being hidden behind a read-only property. This
+       is meant as a hint: you're not supposed to modify them because then
+       Bad Things may happen.
+
     """
 
     __metaclass__ = ABCMeta
@@ -50,8 +83,16 @@ class AbstractSegment(object):
         """
         Initialize attributes common to all segment types.
 
-        This method permanently sets the values for the start, stop and size
-        read-only properties.
+        :param start: The start position of this segment, either as an int
+            or as a string like "14.4k". See
+            :py:func:`fakelargefile.tools.parse_unit` for acceptable syntax
+            for the string.
+        :type start: int or str
+
+        :param stop: The position of the first byte beyond this segment,
+            either as an int or as a string like "28.8k".
+        :type start: int or str
+
         """
         self._start = parse_unit(start)
         self._stop = parse_unit(stop)
@@ -76,16 +117,16 @@ class AbstractSegment(object):
     @property
     def size(self):
         """
-        Return the size of this segmflfent in bytes.
+        Return the size of this segment in bytes.
         """
         return self._size
 
     def intersects(self, start, stop):
         """
-        Is part of the start-stop interval inside this segment?
+        Return True if the (start, stop) interval intersects this segment.
 
-        Returns True even if the start-stop interval is of length 0, as long
-        as it is *inside* this segment.
+        Returns True even if the (start, stop) interval is of length 0, as
+        long as it is properly *inside* this segment.
 
         Returns False if the start-stop interval is merely adjacent to this
         segment.
@@ -96,17 +137,18 @@ class AbstractSegment(object):
             return True
         elif start < self.start < self.stop < stop:
             return True
-        return False
+        else:
+            return False
 
     def cut(self, start, stop):
         """
-        Parts left after removing part between start and stop.
+        Return the parts left after removing part between start and stop.
 
         Cuts from and including start to and not including stop.
 
-        The start to stop interval has to intersect self, or a ValueError is
-        raised, but either or both may be beyond the boundaries of the
-        segment.
+        The (start, stop) interval has to intersect this segment, or a
+        ValueError is raised. However, either or both of start and stop
+        may be beyond the boundaries of this segment.
         """
         if not self.intersects(start, stop):
             raise ValueError(
@@ -130,6 +172,7 @@ class AbstractSegment(object):
         :returns: A tuple (first, last), where either may be None if the cut
             is at self.start or self.stop.
         """
+        # TODO: index? position? consistency!
         if not (self.start <= index <= self.stop):
             raise ValueError(
                 "The given index must be between {} and {}, got {}".format(
@@ -156,6 +199,8 @@ class AbstractSegment(object):
             or None if start == stop.
 
         """
+        # TODO: automate param description and Slice creation for methods
+        # accepting a slice.
         raise NotImplementedError()
 
     @abstractclassmethod

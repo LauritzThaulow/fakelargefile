@@ -2,5 +2,6 @@ The segment API
 ===============
 
 .. automodule:: fakelargefile.segment.abc
-   :members:
-   :special-members:
+
+.. autoclass:: fakelargefile.segment.abc.AbstractSegment
+   :members: __init__, intersects, cut, cut_at, subsegment, substring, copy, index, example

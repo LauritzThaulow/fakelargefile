@@ -49,7 +49,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'FakeLargeFile'
-copyright = u'2014, Lauritz Vesteraas Thaulow'
+copyright = u'2014, Lauritz Vesteraas Thaulow'  # @ReservedAssignment
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -247,7 +247,8 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'FakeLargeFile', u'FakeLargeFile Documentation',
-   u'Lauritz Vesteraas Thaulow', 'FakeLargeFile', 'One line description of project.',
+   u'Lauritz Vesteraas Thaulow', 'FakeLargeFile',
+   'One line description of project.',
    'Miscellaneous'),
 ]
 
